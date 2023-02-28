@@ -1,0 +1,30 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>L4D2BasicSDK</Name>
+    <Description>&lt;No description available&gt;</Description>
+    <ProjectType>VC</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>L4D2BasicSDK</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>__TemplateIcon.jpg</Icon>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="L4D2Basic.vcxproj" File="L4D2Basic.vcxproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="false" TargetFileName="$projectname$.vcxproj.filters">L4D2Basic.vcxproj.filters</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="dllMain.cpp">dllMain.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Includes.h">Includes.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Player.h">Player.h</ProjectItem>
+      <Folder Name="utilities" TargetFolderName="utilities">
+        <ProjectItem ReplaceParameters="false" TargetFileName="HookTemplate.h">UTILITIES\HookTemplate.h</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="MemEditAdvnc.h">UTILITIES\MemEditAdvnc.h</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="SigScan_RIP.h">UTILITIES\SigScan_RIP.h</ProjectItem>
+        <ProjectItem ReplaceParameters="false" TargetFileName="Vector.h">UTILITIES\Vector.h</ProjectItem>
+      </Folder>
+    </Project>
+  </TemplateContent>
+</VSTemplate>
