@@ -6,66 +6,60 @@
 
 #define clientBase  (ptrdiff_t)GetModuleHandleA("client.dll")
 #define engineBase  (ptrdiff_t)GetModuleHandleA("engine.dll")
-#define dwLocalPlayer (ptrdiff_t)0xDEA964
-#define dwEntityInstance (ptrdiff_t)0x4DFFEF4
-#define dwClientState (ptrdiff_t)0x59F19C
-#define dwClientState_MaxPlayer  (ptrdiff_t)0x388
-#define dwClientState_ViewAngles (ptrdiff_t) 0x4D90
-
+#define pEntityListInstance (ptrdiff_t)0x71a030  // Entity-list base-address so basically ptr to entity-list
+#define pLocalPlayer    (ptrdiff_t)0x7094d8 // ptr to local-player-baseaddress so basically ptr to ptr to Local-Player
+#define pCClinetState   (ptrdiff_t) 0x42a8ec // to access clientState class get adress here then 0x8 to get base-address
+#define pCClinetState_ViewAngles  (ptrdiff_t)0x4aa4 // at this offset of clientstate class get writable view angles
+#define pCCSInput_base    (ptrdiff_t)0x6c5d7c
 #pragma endregion
 
-MemEdit memEdit {};
 
+
+
+// Created with ReClass.NET 1.2 by KN4CK3R
+
+class CCSInput_base
+{
+public:
+	char pad_0000[177]; //0x0000
+	bool m_fCameraInThirdPerson; //0x00B1
+	char pad_00B2[2]; //0x00B2
+	Vector3 SetCameraOffsetAngles; //0x00B4
+	char pad_00C0[60]; //0x00C0
+}; //Size: 0x00FC
+
+//static_assert(sizeof( CCSInput_base ) == 0x150);
 
 class LocalPlayer
 {
 public:
 	LocalPlayer() = default;
-	// isDormant;
-	char pad1[0xED];
-	bool isDormant; // 0xED(0x01) ;
 
-	//iTeamNum
-	char pad2[0x6];
-	int iTeamNum; //{ 0xF4 };(0x04)
-
-	//iHealth
-	char pad3[0x8];
-	int iHealth;// { 0x100 };(0x04)
-
-	char padz[0x04];
-	Vector3 m_vecViewOffset;// {0x108}; (0xc)
-
-	//vecorigin
-	char pad4[0x24];
-	Vector3  vecOrigin; //{ 0x138 };(0xc)
-
-	//b_spotted by wall
-	char pad8[0x83c];
-	bool m_bSpottedByMask; // {0x980}; (0x01)
-
-	// bone_matrix
-	char pad5[0X1D27];
-	int m_dwBoneMatrix; // { 0x26A8 };(0x4) 
-
-	//aim_punch_angle
-	char pad6[0X990];
-	Vector3 m_aimPunchAngle; //{ 0x303C };(0xc)
-
-	//armor-value
-	char pad7[0xE784];
-	int  m_ArmorValue;// { 0x117CC };(0X4)
-
+	char pad_0000[16]; //0x0000
+	char* str_infection_state; //0x0010
+	char pad_0014[68]; //0x0014
+	int32_t entity_id_index; //0x0058
+	char pad_005C[136]; //0x005C
+	int32_t iTeamNum; //0x00E4
+	char pad_00E8[4]; //0x00E8
+	int32_t iHealth; //0x00EC
+	char pad_00F0[4]; //0x00F0
+	Vector3 m_vecViewOffset; //0x00F4
+	char pad_0100[36]; //0x0100
+	Vector3 vecOrigin; //0x0124
+	char pad_0130[4724]; //0x0130
+	Vector3 view_angle_noedit; //0x13A4
+	
 	static LocalPlayer* getLocalPlayerPtr() // to get a this pointer of object or maybe call base-address of object
 	{
-		return memEdit.ptr2ObjBaseAddress<LocalPlayer>( clientBase+dwLocalPlayer);
+		return g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( clientBase + pLocalPlayer);
 
 	}
 	
 	Vector3* getViewAnglesPtr()
 	{
-		ptrdiff_t viewAngleAddrs = { memEdit.readPtr<ptrdiff_t>(engineBase+dwClientState) + dwClientState_ViewAngles};
-		Vector3* viewAnglesPtr = memEdit.makePtr<Vector3>( viewAngleAddrs );
+		ptrdiff_t viewAngleAddrs = { g_memEdit.readPtr<ptrdiff_t>(engineBase+pCClinetState) +0x08+ pCClinetState_ViewAngles};
+		Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );
 		return viewAnglesPtr;
 	}
 
@@ -85,10 +79,12 @@ public:
 			viewAngles->m_x = pitch; // set the view angles by dereference operator
 			viewAngles->m_y = yaw;
 			//*(float*) ((ptrdiff_t) viewAngles) = pitch;  same as above
-	    	//*(float*) ((ptrdiff_t) viewAngles + 0x04) = yaw;
+	     	//*(float*) ((ptrdiff_t) viewAngles + 0x04) = yaw;
 		}
 
 	}
+
+	/*
 	Vector3 GetBonePosition( int boneID )
 	{
 		Vector3 bonePos {};
@@ -97,54 +93,50 @@ public:
 		bonePos.m_y = *(float*) (boneMatrixPtr + 0x30 * boneID + 0x1c);
 		bonePos.m_z = *(float*) (boneMatrixPtr + 0x30 * boneID + 0x2C);
 		return bonePos;
-	}
+	}  */
 };
 
-class EntityInstance :public LocalPlayer // inheritance used as all entities use structure similar to player
+class EntityListInstance :public LocalPlayer // inheritance used as all entities use structure similar to player
 {
 public:
 	
 	std::vector < LocalPlayer*> array_EntityPtr{};
+	
 
 public:
-	EntityInstance() = default;
-	static EntityInstance* getEntityInstancePtr()
+	EntityListInstance() = default;
+
+	static EntityListInstance* getEntityListInstancePtr()
 	{
-		return memEdit.makePtr<EntityInstance>( clientBase + dwEntityInstance );
+		return g_memEdit.makePtr<EntityListInstance>( clientBase + pEntityListInstance );
 	}
+
 	LocalPlayer* GetOtherEntity( int index )
 	{
-		ptrdiff_t entityPtr = (ptrdiff_t) getEntityInstancePtr() + index * 0x10;
-		ptrdiff_t localPlayerptr = memEdit.readPtr<ptrdiff_t>( entityPtr, 1337 );
-		return memEdit.makePtr<LocalPlayer>( localPlayerptr );
+		ptrdiff_t entityPtr = (ptrdiff_t) getEntityListInstancePtr() + 0x04+ index * 0x10;
+		ptrdiff_t otherEntityBaseAddress = g_memEdit.readPtr<ptrdiff_t>( entityPtr, 1337 );
+		return g_memEdit.makePtr<LocalPlayer>( otherEntityBaseAddress );
 	}
-	static int GetMaxPlayer()
-	{
-		ptrdiff_t maxPlayerAdd = *(ptrdiff_t*) (engineBase + dwClientState) + dwClientState_MaxPlayer;
-		return memEdit.readPtr<int>( maxPlayerAdd, 0 );
-	}
-	EntityInstance& resizeEntityArray()
-	{
-		array_EntityPtr.resize( GetMaxPlayer() );
-		return *this;
-	}  
+
 	
 	bool checkValidEnt( int index )
 	{
 		LocalPlayer* entity = GetOtherEntity( index );
 
-		if (!entity)
+		if (!entity)  // to check if entity even exists or is valid
 			return false;
 		if (entity == getLocalPlayerPtr())
 			return false;
-		if (entity->iHealth <= 0)
+		if (entity->iTeamNum != 3)
 			return false;
-		if (entity->isDormant)
+		//if(_stricmp(entity->str_infection_state,"infected"))
+			//return false;
+		/*if (entity->isDormant)
 			return false;
 		if (entity->iTeamNum == getLocalPlayerPtr()->iTeamNum)
 			return false;
 		if (entity->m_bSpottedByMask)
-			return false;
+			return false;  */
 		return true;
 	}
 	
@@ -152,10 +144,12 @@ public:
 	LocalPlayer* GetClosestEnemy(   ) // Get closest enemy to player
 	{
 		float closestDistance = 1000000;
+		
 		int closestDistanceIndex = -1;
 
 		LocalPlayer* localPlayer = getLocalPlayerPtr();
-		for(int i{0};i<64;++i)
+
+		for(int i{0};i<800;++i)
 		{
 			if (!checkValidEnt( i ))
 				continue;
@@ -163,7 +157,7 @@ public:
 			LocalPlayer* currentPlayer = GetOtherEntity( i );
 			
 			Vector3 LocalPlayerPos = (localPlayer->vecOrigin) + (localPlayer->m_vecViewOffset);
-			
+		/*
 			Vector3 otherPlayerPos = [&]()  // Getting bone position by Lambda
 			{
 				Vector3 bonePos {};
@@ -172,7 +166,9 @@ public:
 				bonePos.m_y = *(float*) (boneMatrixPtr + 0x30 * 8 + 0x1c);
 				bonePos.m_z = *(float*) (boneMatrixPtr + 0x30 * 8 + 0x2C);
 				return bonePos;
-			}();
+			}();  */
+
+			Vector3 otherPlayerPos{ (GetOtherEntity( i )->vecOrigin) + Vector3{0.0,0.0,55.0 } };
 
 			float distanceDiff = LocalPlayerPos.DistanceTo( otherPlayerPos );
 			if (distanceDiff < closestDistance)
@@ -187,4 +183,12 @@ public:
 		}
 		return GetOtherEntity( closestDistanceIndex );
 	}	
+
+	Vector3 targetEntityVec()
+	{
+
+		return { GetClosestEnemy()->vecOrigin + Vector3{0.0,0.0,55.0 } };
+
+
+	}
 };

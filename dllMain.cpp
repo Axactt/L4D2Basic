@@ -1,41 +1,72 @@
 #include"Includes.h"
 
-
-void printAddress1()
+ 
+void setThirdPerson(bool bThirdPerson )
 {
-	// address of get_local_player function
-	class SigScanner sigScan{"client.dll" };
-	byte bMask[]{ "\xE8\x00\x00\x00\x00\x8B\xF0\x83\xC4\x00\x85\xF6\x75\x00\x5E\x32\xC0\x5B\x8B\xE5" };
-	char szMask[]{ "x????xxxx?xxx?xxxxxx" };
-	std::cout<<"address found for getLocalPlayer() function: "<<std::hex<<sigScan.FindPattern(bMask, szMask).GetAddress()<<'\n';
+	CCSInput_base* pCCSInputBase = g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( engineBase + pCCSInput_base );
 
-}
-void printAddress2()
-{
-	// Address of pCClientEntityList i.e ptr to CClientEntityLIst
-	class SigScanner sigScan
+	if (GetAsyncKeyState( VK_INSERT ) & 1)
 	{
-		"client.dll"
-	};
-	byte bMask[]{ "\x8B\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x85\xC0\x74\x00\x8B\x90" };
-	char szMask[]{ "xx????x????xxx?xx" };
-	std::cout << "address  for location containing ptr to CClinetEntitylist class: " << std::hex << sigScan.FindPattern( bMask, szMask ).add(2).GetAddress() << '\n';
-	std::cout << "Offset-address::ptr to CClinetEntitylist class: " << std::hex << sigScan.FindPattern( bMask, szMask ).GetOffsetAddress32(2)<<'\n';
+		
+		bThirdPerson = !bThirdPerson;
+		if (bThirdPerson)
+		{
+			DWORD oProc;
+			VirtualProtect((LPVOID)pCCSInputBase, 0xFC, PAGE_EXECUTE_READWRITE, &oProc );
+			pCCSInputBase->m_fCameraInThirdPerson = true;
+			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, oProc, &oProc );
+		}
+		else
+		{
+			DWORD oProc;
+			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, PAGE_EXECUTE_READWRITE, &oProc );
+			pCCSInputBase->m_fCameraInThirdPerson = false;
+			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, oProc, &oProc );
+		}
+	}
+
+
 }
+
+
 
 DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 {
 	AllocConsole(); // To allocate console for logging
 	FILE* f;
 	freopen_s( &f, "CONOUT$", "w", stdout );
-	printAddress1();
-	printAddress2();
+	LocalPlayer* localPlayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
+	EntityListInstance* entityListBaseAddress = EntityListInstance::getEntityListInstancePtr();
+	CCSInput_base* pCCSInputBase = g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( clientBase + pCCSInput_base );
+	std::cout<<"LocalPlayer Base-Address:\t" << std::hex << (ptrdiff_t) localPlayerBaseAddress<<'\n';
+	std::cout <<"EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress<<'\n';
+	std::cout << "Closest enemy address:\t " << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n';
+	std::cout << "View angle address:\t" << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
+	std::cout << "This pointer of  CCInput_base:\t" << std::hex << (ptrdiff_t) pCCSInputBase << '\n';
+	
+	//std::cout << "Toggle Insert-key to set third-person- mode On/off.\n";
+	bool bThirdPerson = false;
+
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
 		//MAIN GAME LOOP WHICH RUNS WITH EVERY FRAME
+		//localPlayerBaseAddress->aimAt( entityListBaseAddress->targetEntityVec() );
+		//std::cout << "Offset_Pointer to m_fCameraInThirdPerson:\t" <<  (g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( clientBase + pCCSInput_base )->m_fCameraInThirdPerson) << '\n';
+		if (GetAsyncKeyState( VK_INSERT ) & 1)
+		{
 
+			bThirdPerson = !bThirdPerson;
+			if (bThirdPerson)
+			{	
+				pCCSInputBase->m_fCameraInThirdPerson = true;
+			}
+			else
+			{
+				pCCSInputBase->m_fCameraInThirdPerson = false;
+			}
+		}
+		std::cout << "Current state of m_fCameraInThirdPerson: " << pCCSInputBase->m_fCameraInThirdPerson << '\n';
 		Sleep( 1 );
-
 	}
 	//unload of Dll and reource deallocation code.
 	fclose( f );

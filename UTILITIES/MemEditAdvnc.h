@@ -1,9 +1,9 @@
 #ifndef MEMEDIT_H
 #define MEMEDIT_H
 #include"Windows.h"
-#include<cstdint>
+#include<cstdint> 
 
-// Little memory editing class from Uc
+// Little memory editing class 
 
 int filter( unsigned int code, LPEXCEPTION_POINTERS ep ) // correct parameter name for pointer to struct _EXCEPTION_POINTERS(EXCEPTION_POINTERS*)
 {
@@ -116,13 +116,15 @@ public:
 	}
 
 	template <typename T>
-	// T* is static/global-pointer to dynamic object structure(dT);  static-address value "addrs" is POINTER to  Base-addres of Object/ pTHIS  or pObjBaseAddress
+	// T* is static/global-pointer to dynamic object structure(dT);  
+	// static-address value "pointer2ObjBaseAdrress" is POINTER to  Base-addres of Object/ <" POINTER to THIR ptr">  or <pointer2ObjBaseAdrress>
 	//(found from CE) pObjectBaseAddress NOTE: not THIS pointer or Baseaddress of object
-	T* ptr2ObjBaseAddress( ptrdiff_t addrs )
+	//The output is this pointer or object instance base address as T*
+	T* get_THIS_frm_ptr2ObjBaseAdrs( ptrdiff_t pointer2ObjBaseAdrress )
 	{
 		__try
 		{
-			return (*(T**) addrs);
+			return (*(T**) pointer2ObjBaseAdrress);
 		}
 		__except (filter( GetExceptionCode(), GetExceptionInformation() ))
 		{
@@ -130,8 +132,13 @@ public:
 		}
 	}	
 };
+ /* Very Imporatnt  to instantiate class as Global Inline variable below class definition    */
+inline MemEdit g_memEdit{}; // inline definition of Global class objects to be used/inluded in multiple file location
 
-// MemEdit memedit;
+
+
+
+// inline MemEdit g_memEdit{};
 //readPtring memmory:
 //int hue= memedit.readPtr<int>(0x1337,1);
 //where "0x1337" is the address and "1" is the default value

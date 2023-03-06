@@ -5,8 +5,6 @@
 #include <iostream>
 #include <string>
 
-
-
 class SigScanner
 {
 private:
@@ -46,14 +44,7 @@ public:
 		// Change the memory protection of the target process's memory to allow read and write
 		//VirtualProtect( (LPVOID) baseAddress, moduleLength, PAGE_EXECUTE_READWRITE, &oldProtect );
 	}
-	// destructor to reset class variables and de-allocate any resources used
-	~SigScanner()
-	{
-		hModule = 0;
-		baseAddress = 0;
-		moduleLength = 0;
-		m_address_found = 0;
-	}
+	
 
 	bool DataCompare( const byte* pData, const byte* bMask, const char* szMask )
 	{
