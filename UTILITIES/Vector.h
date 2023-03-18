@@ -2,6 +2,27 @@
 
 #include<cmath>
 #include <corecrt_math_defines.h> // For PI cosnstant
+struct Matrix3x4
+{
+	char _pad1[12];
+	float m_x{};
+	char _pad2[12];
+	float m_y{};
+	char _pad3[12];
+	float m_z{};
+};
+struct Matrix4x4
+{
+	float matrix4x4[16]{};
+};
+struct Vector4
+{
+	float m_x{};
+	float m_y{};
+	float m_z{};
+	float m_w{};
+
+};
 class Vector2
 {
 public:
@@ -17,6 +38,7 @@ public:
 	{
 		m_x = vec.m_x;
 		m_y = vec.m_y;
+		return *this;
 	}
 
 	Vector2& operator+=( const Vector2& vec )
@@ -116,6 +138,7 @@ public:
 		m_x = vec.m_x;
 		m_y = vec.m_y;
 		m_z = vec.m_z;
+		return *this;
 	}
 
 	Vector3& operator+=( const Vector3& vec )

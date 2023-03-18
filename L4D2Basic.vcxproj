@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -84,7 +85,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -142,17 +143,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="drawLogic.h" />
+    <ClInclude Include="dxStuff.h" />
+    <ClInclude Include="Methods.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="utilities\HookTemplate.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="utilities\MemEditAdvnc.h" />
-    <ClInclude Include="utilities\SigScan_RIP.h" />
+    <ClInclude Include="UTILITIES\SigFunctor.h" />
     <ClInclude Include="utilities\Vector.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllMain.cpp" />
+    <ClCompile Include="drawLogic.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

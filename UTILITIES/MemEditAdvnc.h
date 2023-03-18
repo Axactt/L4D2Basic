@@ -5,20 +5,24 @@
 
 // Little memory editing class 
 
-int filter( unsigned int code, LPEXCEPTION_POINTERS ep ) // correct parameter name for pointer to struct _EXCEPTION_POINTERS(EXCEPTION_POINTERS*)
-{
-	//handle only Access Violation
-	// If access violation it will execute the code in handler or else execute the Execption search
-	return code == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH;
 
-}
 
 class MemEdit
 {
 public:
 	MemEdit() = default;
 
+	//filter function should go inside class otherwise ODR rule is violated
+	int filter( unsigned int code, LPEXCEPTION_POINTERS ep ) // correct parameter name for pointer to struct _EXCEPTION_POINTERS(EXCEPTION_POINTERS*)
+	{
+		//handle only Access Violation
+		// If access violation it will execute the code in handler or else execute the Execption search
+		return code == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH;
+
+	}
+
 	template<typename T>
+	//READ a value of type "T" from its pointer
 	T readPtr( ptrdiff_t Address, const T& def_val = T() ) // Give a default value To check if readPtr fails e.g. like 5126
 	{
 		__try
@@ -115,6 +119,7 @@ public:
 		}
 	}
 
+	//NOTE: FUNCTION OUTPUTS THIS POINTER OR BASE-ADDRESS OF OBJECT
 	template <typename T>
 	// T* is static/global-pointer to dynamic object structure(dT);  
 	// static-address value "pointer2ObjBaseAdrress" is POINTER to  Base-addres of Object/ <" POINTER to THIR ptr">  or <pointer2ObjBaseAdrress>

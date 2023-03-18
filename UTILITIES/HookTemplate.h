@@ -120,6 +120,16 @@ public:
 		VirtualProtect( lpOriginalFuncAddrs, LENGTH, oldProc, &oldProc );
 	}
 
+	template<int LENGTH>
+	void unhook( char* lpOriginalFuncAddress )
+	{
+
+		patchByte<LENGTH>( lpOriginalFuncAddress );
+		if (m_gateWay)
+			VirtualFree( m_gateWay, 0, MEM_RELEASE );
+		m_gateWay = nullptr;
+	}
 };
 
+inline HooknPatch g_HnP{}; // Inline global object instance to use with all files
 #endif

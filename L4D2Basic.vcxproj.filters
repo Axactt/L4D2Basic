@@ -27,18 +27,30 @@
     <ClInclude Include="utilities\MemEditAdvnc.h">
       <Filter>utilities</Filter>
     </ClInclude>
-    <ClInclude Include="utilities\SigScan_RIP.h">
-      <Filter>utilities</Filter>
-    </ClInclude>
     <ClInclude Include="utilities\Vector.h">
       <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Methods.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="drawLogic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UTILITIES\SigFunctor.h">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="dxStuff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="drawLogic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

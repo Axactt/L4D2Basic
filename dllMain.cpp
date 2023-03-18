@@ -1,35 +1,6 @@
 #include"Includes.h"
-
- 
-void setThirdPerson(bool bThirdPerson )
-{
-	CCSInput_base* pCCSInputBase = g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( engineBase + pCCSInput_base );
-
-	if (GetAsyncKeyState( VK_INSERT ) & 1)
-	{
-		
-		bThirdPerson = !bThirdPerson;
-		if (bThirdPerson)
-		{
-			DWORD oProc;
-			VirtualProtect((LPVOID)pCCSInputBase, 0xFC, PAGE_EXECUTE_READWRITE, &oProc );
-			pCCSInputBase->m_fCameraInThirdPerson = true;
-			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, oProc, &oProc );
-		}
-		else
-		{
-			DWORD oProc;
-			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, PAGE_EXECUTE_READWRITE, &oProc );
-			pCCSInputBase->m_fCameraInThirdPerson = false;
-			VirtualProtect( (LPVOID) pCCSInputBase, 0xFC, oProc, &oProc );
-		}
-	}
-
-
-}
-
-
-
+#include"dxStuff.h"
+#include"drawLogic.h"
 DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 {
 	AllocConsole(); // To allocate console for logging
@@ -37,38 +8,23 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	freopen_s( &f, "CONOUT$", "w", stdout );
 	LocalPlayer* localPlayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
 	EntityListInstance* entityListBaseAddress = EntityListInstance::getEntityListInstancePtr();
-	CCSInput_base* pCCSInputBase = g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( clientBase + pCCSInput_base );
 	std::cout<<"LocalPlayer Base-Address:\t" << std::hex << (ptrdiff_t) localPlayerBaseAddress<<'\n';
 	std::cout <<"EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress<<'\n';
-	std::cout << "Closest enemy address:\t " << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n';
-	std::cout << "View angle address:\t" << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
-	std::cout << "This pointer of  CCInput_base:\t" << std::hex << (ptrdiff_t) pCCSInputBase << '\n';
+	//std::cout << "Closest enemy address:\t " << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n'; 
+	std::cout << "The view angles pointer editable is: " << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
+	std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z;
 	
-	//std::cout << "Toggle Insert-key to set third-person- mode On/off.\n";
-	bool bThirdPerson = false;
-
+	const auto dxstuff = DirectXStuff::dxstfInstance();
+	dxstuff->getEndSceneHooked();
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
-		//MAIN GAME LOOP WHICH RUNS WITH EVERY FRAME
-		//localPlayerBaseAddress->aimAt( entityListBaseAddress->targetEntityVec() );
-		//std::cout << "Offset_Pointer to m_fCameraInThirdPerson:\t" <<  (g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CCSInput_base>( clientBase + pCCSInput_base )->m_fCameraInThirdPerson) << '\n';
-		if (GetAsyncKeyState( VK_INSERT ) & 1)
-		{
-
-			bThirdPerson = !bThirdPerson;
-			if (bThirdPerson)
-			{	
-				pCCSInputBase->m_fCameraInThirdPerson = true;
-			}
-			else
-			{
-				pCCSInputBase->m_fCameraInThirdPerson = false;
-			}
-		}
-		std::cout << "Current state of m_fCameraInThirdPerson: " << pCCSInputBase->m_fCameraInThirdPerson << '\n';
+		localPlayerBaseAddress->updateMatrix();
+		localPlayerBaseAddress->aimAt( entityListBaseAddress->targetEntityVec() );
 		Sleep( 1 );
 	}
 	//unload of Dll and reource deallocation code.
+	g_HnP.unhook<7>( (char*)dxstuff->lpOriginalFuncAddress );
+	if(f)
 	fclose( f );
 	FreeConsole();
 	FreeLibraryAndExitThread( hInstDLL, 0 );//to call DLL_PROCESS_DETACH and resource deallocation
