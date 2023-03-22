@@ -4,12 +4,7 @@
 #include <corecrt_math_defines.h> // For PI cosnstant
 struct Matrix3x4
 {
-	char _pad1[12];
-	float m_x{};
-	char _pad2[12];
-	float m_y{};
-	char _pad3[12];
-	float m_z{};
+	float matrixArray[12]; // Changed to matrix array as using a matrix3x4 in reclass was giving wrong values
 };
 struct Matrix4x4
 {

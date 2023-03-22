@@ -6,9 +6,10 @@
 
 class DirectXStuff
 {
+
 public:
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
-	 aliasEndScene EndScenePtr{  };
+	static inline aliasEndScene EndScenePtr{  };
 	 ptrdiff_t lpOriginalFuncAddress{};
 	 // interface pointer to IDirect3DDevice9
 	IDirect3DDevice9* pDevice{};
@@ -23,7 +24,7 @@ public:
 	Vector2 getWindowSize()
 	{
 		//get HWND of Game window
-		HWND gameWindow = FindWindowA( NULL, "Left 4 Dead 2" );
+		HWND gameWindow = FindWindowA( NULL, "Left 4 Dead 2 - Direct3D 9" );
 		float gameWindowWidth{};
 		float gameWindowHeight{};
 		RECT rect{};
@@ -41,6 +42,7 @@ public:
 
 	// Create our hook function having prototype as Endscene
 	// FIX THIS LATER== TOO MUCH STATIC
+	//hookEndScene member function has to be made static for being called by hook inside its own class
     static HRESULT __stdcall hookEndScene( IDirect3DDevice9* pDevice )
 	{
 		//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
@@ -72,26 +74,32 @@ public:
 		Vector3 entityPoshead3D{};
 		Vector2 entityBottomPos2D{};
 		Vector3 entityBottomPos3D{};
+
 		for (int id{0};id<900;++id) 
 		{ 
-		LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
-		if (!entityListAddress->checkValidEnt( entity ))
-			continue;
-		entityPoshead3D = entity->GetBonePosition( 14 );
-		if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
-		{
+			LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
+		
+			if( (!entity)|| (entity == localPLayerBaseAddress)|| (entity->iTeamNum != 3) || (entity->isDormant) )
+				continue;
+		
+			entityPoshead3D = entity->GetBonePosition(14);
+
+		    if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
+
+		    {
 			Vector2 dest{ g_windowSize.m_x / 2, g_windowSize.m_y };
 			
-			entityBottomPos3D = entity->vecOrigin;
+				entityBottomPos3D = entity->vecOrigin;
 
-			if (localPLayerBaseAddress->worldToScreen( entityPoshead3D, entityPoshead2D ))
-			{
+			     if (localPLayerBaseAddress->worldToScreen( entityPoshead3D, entityPoshead2D ))
+			     {
 				//DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
-
+				 
 				if(localPLayerBaseAddress->worldToScreen(entityBottomPos3D, entityBottomPos2D ))
-			       DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
-			}
-		}
+			      DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+
+			     }
+		    }
 
 		}
 		return dxstfInstance()->EndScenePtr( pDevice );
@@ -142,7 +150,7 @@ public:
 			//Various implementation methods can be used from IDirect3DDevice9* interface
 			//returns fully working device interface, set to the required display mode
 			// and allocated with appropriate back-buffers
-			//IDirect3DDevice9* pDevice{};
+			IDirect3DDevice9* pDevice{};
 			pD3D->CreateDevice( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, gameWindow, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &pDevice );
 			if (pDevice)
 			{
@@ -187,9 +195,9 @@ public:
 		//Now we will use the EndSceneptr holding value of real endscene function 
 		// to create a Trampoline-Hook to our hookEndScene
 
-		//src original EndScene function address saved here
+		//src original EndScene function address saved here in a member variable
 		lpOriginalFuncAddress = (ptrdiff_t) EndScenePtr;
-		ptrdiff_t lpFinalHookaddrs = (ptrdiff_t) &DirectXStuff::hookEndScene;
+		ptrdiff_t lpFinalHookaddrs = (ptrdiff_t) &DirectXStuff::hookEndScene; 
 		//7 is the length of stolen bytes
 		if (EndScenePtr) //NULL-POINTER CHECK TO AVOID HOOK TO NULLPTR
 			EndScenePtr = (aliasEndScene) g_HnP.trampHook<7>( (char*) lpOriginalFuncAddress, (char*) lpFinalHookaddrs );
@@ -197,6 +205,6 @@ public:
 
 };
 
-inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
+	inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
 
 //USage is in dllmain like call DirectXStuff::dxstfInstance()->getEndSceneHooked()

@@ -18,16 +18,21 @@ extern Vector2 g_windowSize;
 class CRender
 {
 public:
+	static CRender* getCRenderBaseAddress()
+	{
+		static ptrdiff_t pCrenderBaseAddress{ SigFunctor{}("engine.dll", "\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x50\x00\xFF\xE2\xCC\xCC\xCC\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x50\x00\xFF\xE2\xCC\xCC\xCC\x55\x8B\xEC\x8B\x45\x00\x50", "xx????xxxx?xxxxxxx????xxxx?xxxxxxxxxx?x").GetOffsetAddress32( 2 ) };
+		//Base afddress of object is pointer to object in code or a THIS POINTER
+		static CRender*  cRenderPtr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CRender>( pCrenderBaseAddress ) };
+
+		return cRenderPtr;
+
+	}
+
 	char pad_0000[156]; //0x0000
 	Matrix4x4 wvpMatrix; //0x009C
 	char pad_00DC[4]; //0x00DC
 
-	static CRender* getCRenderBaseAddress()
-	{
-		//Base afddress of object is pointer to object in code or this pointer
-		return g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CRender>( SigFunctor{}("engine.dll", "\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x01\x8B\x50\x34\xFF\xE2", "xx????xxxxxxx").GetOffsetAddress32( 2 ) );
-
-	}
+	
 }; //Size: 0x00E0
 
 class BoneArray2
@@ -47,7 +52,7 @@ public:
 class BoneArray1
 {
 public:
-	char pad_0000[48]; //0x0000
+	float boneMatrixArray[12]; //0x0000
 }; //Size: 0x0030
 static_assert(sizeof( BoneArray1 ) == 0x30);
 
@@ -83,7 +88,7 @@ public:
 	char pad_0014[68]; //0x0014
 	int32_t entity_id_index; //0x0058
 	char pad_005C[129]; //0x005C
-	int8_t isDormant; //0x00DD
+	bool isDormant; //0x00DD
 	char pad_00DE[6]; //0x00DE
 	int32_t iTeamNum; //0x00E4
 	char pad_00E8[4]; //0x00E8
@@ -103,17 +108,18 @@ public:
 	
 	static LocalPlayer* getLocalPlayerPtr() // to get a this pointer of object or maybe call base-address of object
 	{
-		ptrdiff_t pC_TerrorPlayer_base{ SigFunctor{}("client.dll","\xB8\xCC\xCC\xCC\xCC\x39\x10\x74\x10\x83\xC0\x04\x3D\xCC\xCC\xCC\xCC\x7C\xF2\x32\xC0\x5D\xC2\x04\x00","x????xxxxxxxx????xxxxxxxx").GetOffsetAddress32( 1 ) };
-		return g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( pC_TerrorPlayer_base );
+		static ptrdiff_t pC_TerrorPlayer_base{ SigFunctor{}("client.dll","\xB8\xCC\xCC\xCC\xCC\x39\x10\x74\x10\x83\xC0\x04\x3D\xCC\xCC\xCC\xCC\x7C\xF2\x32\xC0\x5D\xC2\x04\x00","x????xxxxxxxx????xxxxxxxx").GetOffsetAddress32( 1 ) };
+		static LocalPlayer* localPlayerptr { g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( pC_TerrorPlayer_base ) };
+		return localPlayerptr;
 	}
 	
 	Vector3* getViewAnglesPtr()
 	{
-		ptrdiff_t pCClientState_minus_8{ SigFunctor{}("engine.dll","\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x49\x18\x8B\x11\x50\x8B\x82\x24\x01\x00\x00\xFF\xD0\x8B\x4E\x18","xx????xxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
+		 static ptrdiff_t pCClientState_minus_8{ SigFunctor{}("engine.dll","\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x49\x18\x8B\x11\x50\x8B\x82\x24\x01\x00\x00\xFF\xD0\x8B\x4E\x18","xx????xxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
 		ptrdiff_t CClientState_minus_8{ g_memEdit.readPtr<ptrdiff_t>( pCClientState_minus_8,1337 ) };
 		ptrdiff_t CClientState_base{ CClientState_minus_8 + 0x8 };
 		ptrdiff_t viewAngleAddrs = { CClientState_base+ pCClinetState_ViewAngles};
-		Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );
+		 static Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );
 		return viewAnglesPtr;
 	}
 
@@ -142,12 +148,18 @@ public:
 	Vector3 GetBonePosition( int boneID )
 	{
 		Vector3 bonePos {};
-		if (this->boneMatrixPtr2)
+		auto boneArrayAccess = this->boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
+		/*auto boneAccessShared = std::make_shared<float[]>(12);
+		RtlMoveMemory( &boneAccessShared, &boneArrayAccess, 48 );
+		auto boneAccessWeak = std::weak_ptr{ boneAccessShared };
+		auto boneCheckFail = boneAccessWeak.expired(); */
+		BOOL boneCheckFail = IsBadReadPtr( boneArrayAccess, 48 ); // Function returns Zero if calling process has read access to memory block
+		if (!boneCheckFail)
 		{
-			auto boneArrayAccess = this->boneMatrixPtr2->bonaArray2[boneID].boneMatrixStruct; // This accesses boneMatrixstruct as per boneId
-			bonePos.m_x = boneArrayAccess.m_x;
-			bonePos.m_y = boneArrayAccess.m_y;
-			bonePos.m_z = boneArrayAccess.m_z;
+			//auto boneArrayAccess = this->boneMatrixPtr1->boneArray1[boneID].boneMatrixArray; // This accesses boneMatrixstruct as per boneId
+			bonePos.m_x = boneArrayAccess[3];
+			bonePos.m_y = boneArrayAccess[7];
+			bonePos.m_z = boneArrayAccess[11];
 			return bonePos;
 		}
 		return { 0.0f,0.0f,0.0f };
@@ -182,7 +194,7 @@ class EntityListInstance :public LocalPlayer // inheritance used as all entities
 {
 public:
 	
-	std::vector < LocalPlayer*> array_EntityPtr{};
+	//std::vector < LocalPlayer*> array_EntityPtr{};
 	
 
 public:
@@ -190,15 +202,16 @@ public:
 
 	static EntityListInstance* getEntityListInstancePtr()
 	{
-		ptrdiff_t pCClientEntitylist_base = { SigFunctor{}("client.dll","\x8B\x15\x00\x00\x00\x00\x8B\xC8\x81\xE1\x00\x00\x00\x00\x03\xC9\x8D\x4C\x00\x00\x85\xC9\x74\x00\xC1\xE8\x00\x39\x41\x00\x75\x00\x8B\x01\xC3\x33\xC0\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08","xx????xxxx????xxxx??xxx?xx?xx?x?xxxxxxxxxxxxxxxxxxxxxxxxxxx" ).GetOffsetAddress32(2)};
-		return g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<EntityListInstance>( pCClientEntitylist_base );
+		static ptrdiff_t pCClientEntitylist_base = { SigFunctor{}("client.dll","\x8B\x15\x00\x00\x00\x00\x8B\xC8\x81\xE1\x00\x00\x00\x00\x03\xC9\x8D\x4C\x00\x00\x85\xC9\x74\x00\xC1\xE8\x00\x39\x41\x00\x75\x00\x8B\x01\xC3\x33\xC0\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08","xx????xxxx????xxxx??xxx?xx?xx?x?xxxxxxxxxxxxxxxxxxxxxxxxxxx" ).GetOffsetAddress32(2)};
+		static EntityListInstance* entityListPtr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<EntityListInstance>( pCClientEntitylist_base ) };
+		return    entityListPtr ;
 	}
 
 	LocalPlayer* GetOtherEntity( int index )
 	{
 		ptrdiff_t entityPtr = (ptrdiff_t) getEntityListInstancePtr() + 0x04+ index * 0x10;
-		ptrdiff_t otherEntityBaseAddress = g_memEdit.readPtr<ptrdiff_t>( entityPtr, 1337 );
-		return g_memEdit.makePtr<LocalPlayer>( otherEntityBaseAddress );
+		//ptrdiff_t otherEntityBaseAddress = g_memEdit.readPtr<ptrdiff_t>( entityPtr, 1337 );
+		return { g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( entityPtr ) };
 	}
 
 	bool checkValidEnt( LocalPlayer* entity )
@@ -210,10 +223,9 @@ public:
 			return false;
 		if (entity->iTeamNum != 3)
 			return false;
-		if (entity->isDormant==1) 
+		if (entity->isDormant) 
 			return false;
-		return true;
-	}
+	}  
 
 	LocalPlayer* GetClosestEnemy(  ) // Get closest enemy to player
 	{
@@ -223,14 +235,13 @@ public:
 
 		LocalPlayer* localPlayer = getLocalPlayerPtr();
 
-		for(int i{0};i<990;++i)
+		for(int i{0};i<900;++i)
 		{
-			LocalPlayer* currentPlayer = GetOtherEntity( i );
-
-			if (checkValidEnt(currentPlayer )==false)
+			LocalPlayer* entity = GetOtherEntity( i );
+			if((!entity)|| (entity == localPlayer)|| (entity->iTeamNum != 3)|| (entity->isDormant))
 				continue;
-	
-			Vector3 LocalPlayerPos = (localPlayer->vecOrigin) + (localPlayer->m_vecViewOffset);
+			
+			Vector3 LocalPlayerPos = (localPlayer->vecOrigin ) + (localPlayer->m_vecViewOffset);
 			
 			
 			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition(14)}; // Gets the position of other player head-position
@@ -247,7 +258,8 @@ public:
 		{
 			return nullptr;
 		}
-		return GetOtherEntity( closestDistanceIndex );
+		
+		return { GetOtherEntity( closestDistanceIndex ) };
 	}	
 
 	Vector3 targetEntityVec()
@@ -256,7 +268,7 @@ public:
 		// Return a temporary Vector3 object 
 		LocalPlayer* targetEntity = GetClosestEnemy();
 
-		if (checkValidEnt(targetEntity)&& targetEntity->boneMatrixPtr2)
+		if ( !IsBadReadPtr(targetEntity->boneMatrixPtr1->boneArray1->boneMatrixArray,48))
 			return {targetEntity->GetBonePosition( 14 ) };
 		else
 			return { 0.0f,0.0f,0.0f };

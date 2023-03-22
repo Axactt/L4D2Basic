@@ -10,20 +10,31 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	EntityListInstance* entityListBaseAddress = EntityListInstance::getEntityListInstancePtr();
 	std::cout<<"LocalPlayer Base-Address:\t" << std::hex << (ptrdiff_t) localPlayerBaseAddress<<'\n';
 	std::cout <<"EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress<<'\n';
-	//std::cout << "Closest enemy address:\t " << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n'; 
+	std::cout << "Closest enemy address is:\t" << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n'; 
 	std::cout << "The view angles pointer editable is: " << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
-	std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z;
+	std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z<<'\n';
 	
 	const auto dxstuff = DirectXStuff::dxstfInstance();
 	dxstuff->getEndSceneHooked();
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
+
 		localPlayerBaseAddress->updateMatrix();
-		localPlayerBaseAddress->aimAt( entityListBaseAddress->targetEntityVec() );
+		if (GetAsyncKeyState( VK_F1 ) & 1)
+		{
+			for (int i{ 0 }; i < 16; ++i)
+			{
+				if (i % 4 == 0)
+					std::cout << '\n';
+				std::cout << localPlayerBaseAddress->viewProjMatrix[i] <<'\t';
+			}
+			std::cout << '\n' << '\n';
+		}
+		//localPlayerBaseAddress->aimAt( entityListBaseAddress->targetEntityVec() );  */
 		Sleep( 1 );
 	}
 	//unload of Dll and reource deallocation code.
-	g_HnP.unhook<7>( (char*)dxstuff->lpOriginalFuncAddress );
+	g_HnP.unhook<7>( (char*)dxstuff->lpOriginalFuncAddress );  
 	if(f)
 	fclose( f );
 	FreeConsole();

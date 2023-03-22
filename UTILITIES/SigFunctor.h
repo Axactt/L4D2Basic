@@ -63,13 +63,16 @@ public:
 			if (found)
 			{
 				m_address_found = baseAddress + i;
-				break; // break out of the main outer loop if pattern is found
+				break; // break out of the main outer loop if pattern is found VIMP
 			}
 			else
 			{
-				m_address_found = 0xBADF00D; // else print 
+				//address cant be found , pattern may be wrong
+				m_address_found = 0xBADF00D;// else print 
+				
 			}
 		}
+	
 		return *this;
 	}
 
