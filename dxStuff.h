@@ -3,10 +3,11 @@
 #include"drawLogic.h"
 #include"UTILITIES/HookTemplate.h"
 #include"Player.h"
-
+#include"Methods.h"
 class DirectXStuff
 {
-
+private:
+	DirectXStuff() = default;
 public:
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
@@ -45,9 +46,14 @@ public:
 	//hookEndScene member function has to be made static for being called by hook inside its own class
     static HRESULT __stdcall hookEndScene( IDirect3DDevice9* pDevice )
 	{
+		//Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
+		CEngineTraceClient::instance()->traceRayHook();
+
+
 		//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
 		// all drawing stuff goes here
 		// Drawing custom Crosshair for check
+		
 		Vector2 crossHair2d{};
 		crossHair2d.m_x = g_windowSize.m_x / 2 ;
 		crossHair2d.m_y = g_windowSize.m_y/ 2;
@@ -75,18 +81,20 @@ public:
 		Vector2 entityBottomPos2D{};
 		Vector3 entityBottomPos3D{};
 
-		for (int id{0};id<900;++id) 
+		for (int id{0};id<2048;++id) 
 		{ 
 			LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
 		
 			if( (!entity)|| (entity == localPLayerBaseAddress)|| (entity->iTeamNum != 3) || (entity->isDormant) )
 				continue;
 		
-			entityPoshead3D = entity->GetBonePosition(14);
+		   entityPoshead3D = entity->m_vecViewOffset+entity->vecOrigin;
+			
 
 		    if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
 
 		    {
+
 			Vector2 dest{ g_windowSize.m_x / 2, g_windowSize.m_y };
 			
 				entityBottomPos3D = entity->vecOrigin;

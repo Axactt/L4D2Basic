@@ -1,6 +1,7 @@
 #include"Includes.h"
 #include"dxStuff.h"
 #include"drawLogic.h"
+#include"Methods.h"
 DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 {
 	AllocConsole(); // To allocate console for logging
@@ -12,10 +13,14 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	std::cout <<"EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress<<'\n';
 	std::cout << "Closest enemy address is:\t" << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n'; 
 	std::cout << "The view angles pointer editable is: " << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
-	std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z<<'\n';
+	//std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z<<'\n';
 	
-	const auto dxstuff = DirectXStuff::dxstfInstance();
-	dxstuff->getEndSceneHooked();
+	std::cout << " CEngineTraceClient base address: " << std::hex << (ptrdiff_t) CEngineTraceClient::instance();
+	std::cout << " Trace-ray game function: " << std::hex << CEngineTraceClient::lpOrigTraceRayAddress;
+	
+	// const auto dxstuff = DirectXStuff::dxstfInstance();
+	DirectXStuff::dxstfInstance()->getEndSceneHooked();
+	
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
 
@@ -34,7 +39,7 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 		Sleep( 1 );
 	}
 	//unload of Dll and reource deallocation code.
-	g_HnP.unhook<7>( (char*)dxstuff->lpOriginalFuncAddress );  
+	g_HnP.unhook<7>( (char*) DirectXStuff::dxstfInstance()->lpOriginalFuncAddress );
 	if(f)
 	fclose( f );
 	FreeConsole();

@@ -22,7 +22,7 @@ public:
 	{
 		static ptrdiff_t pCrenderBaseAddress{ SigFunctor{}("engine.dll", "\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x50\x00\xFF\xE2\xCC\xCC\xCC\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x50\x00\xFF\xE2\xCC\xCC\xCC\x55\x8B\xEC\x8B\x45\x00\x50", "xx????xxxx?xxxxxxx????xxxx?xxxxxxxxxx?x").GetOffsetAddress32( 2 ) };
 		//Base afddress of object is pointer to object in code or a THIS POINTER
-		static CRender*  cRenderPtr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CRender>( pCrenderBaseAddress ) };
+		static CRender* cRenderPtr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<CRender>( pCrenderBaseAddress ) };
 
 		return cRenderPtr;
 
@@ -32,7 +32,7 @@ public:
 	Matrix4x4 wvpMatrix; //0x009C
 	char pad_00DC[4]; //0x00DC
 
-	
+
 }; //Size: 0x00E0
 
 class BoneArray2
@@ -105,25 +105,25 @@ public:
 	Vector3 pitch_yaw_noedit; //0x13A4
 	char pad_13B0[12]; //0x13B0
 	float viewProjMatrix[16]{};
-	
+
 	static LocalPlayer* getLocalPlayerPtr() // to get a this pointer of object or maybe call base-address of object
 	{
 		static ptrdiff_t pC_TerrorPlayer_base{ SigFunctor{}("client.dll","\xB8\xCC\xCC\xCC\xCC\x39\x10\x74\x10\x83\xC0\x04\x3D\xCC\xCC\xCC\xCC\x7C\xF2\x32\xC0\x5D\xC2\x04\x00","x????xxxxxxxx????xxxxxxxx").GetOffsetAddress32( 1 ) };
-		static LocalPlayer* localPlayerptr { g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( pC_TerrorPlayer_base ) };
+		static LocalPlayer* localPlayerptr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( pC_TerrorPlayer_base ) };
 		return localPlayerptr;
 	}
-	
+
 	Vector3* getViewAnglesPtr()
 	{
-		 static ptrdiff_t pCClientState_minus_8{ SigFunctor{}("engine.dll","\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x49\x18\x8B\x11\x50\x8B\x82\x24\x01\x00\x00\xFF\xD0\x8B\x4E\x18","xx????xxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
+		static ptrdiff_t pCClientState_minus_8{ SigFunctor{}("engine.dll","\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x49\x18\x8B\x11\x50\x8B\x82\x24\x01\x00\x00\xFF\xD0\x8B\x4E\x18","xx????xxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
 		ptrdiff_t CClientState_minus_8{ g_memEdit.readPtr<ptrdiff_t>( pCClientState_minus_8,1337 ) };
 		ptrdiff_t CClientState_base{ CClientState_minus_8 + 0x8 };
-		ptrdiff_t viewAngleAddrs = { CClientState_base+ pCClinetState_ViewAngles};
-		 static Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );
+		ptrdiff_t viewAngleAddrs = { CClientState_base + pCClinetState_ViewAngles };
+		static Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );
 		return viewAnglesPtr;
 	}
 
-	void aimAt(const Vector3& target)
+	void aimAt( const Vector3& target )
 	{
 		static Vector3* viewAngles = this->getViewAnglesPtr();
 		Vector3 originPos = this->vecOrigin;
@@ -131,15 +131,15 @@ public:
 		Vector3 myFinalVec = originPos + viewOffset; // vector of LocalPlayer eyePosition
 		Vector3 deltaVector = target - myFinalVec; // difference Vector3 between LocalPlayer and other entity
 		float deltaVectorLength = deltaVector.Length(); // Length of difference vector
-		float pitch = (float)-asin( deltaVector.m_z / deltaVectorLength ) * (180 / M_PI);
-		float yaw = (float)atan2 ( deltaVector.m_y , deltaVector.m_x ) * (180 / M_PI);
+		float pitch = (float) -asin( deltaVector.m_z / deltaVectorLength ) * (180 / M_PI);
+		float yaw = (float) atan2( deltaVector.m_y, deltaVector.m_x ) * (180 / M_PI);
 
 		if (pitch >= -89 && pitch <= 89 && yaw >= -180 && yaw <= 180) // clamping angles to maximumdefined angles in game
 		{
 			viewAngles->m_x = pitch; // set the view angles by dereference operator
 			viewAngles->m_y = yaw;
 			//*(float*) ((ptrdiff_t) viewAngles) = pitch;  same as above
-	     	//*(float*) ((ptrdiff_t) viewAngles + 0x04) = yaw;
+			//*(float*) ((ptrdiff_t) viewAngles + 0x04) = yaw;
 		}
 
 	}
@@ -147,8 +147,8 @@ public:
 
 	Vector3 GetBonePosition( int boneID )
 	{
-		Vector3 bonePos {};
-		auto boneArrayAccess = this->boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
+		Vector3 bonePos{};
+		auto boneArrayAccess = boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
 		/*auto boneAccessShared = std::make_shared<float[]>(12);
 		RtlMoveMemory( &boneAccessShared, &boneArrayAccess, 48 );
 		auto boneAccessWeak = std::weak_ptr{ boneAccessShared };
@@ -163,7 +163,7 @@ public:
 			return bonePos;
 		}
 		return { 0.0f,0.0f,0.0f };
-	} 
+	}
 
 	void updateMatrix()
 	{
@@ -193,58 +193,58 @@ public:
 class EntityListInstance :public LocalPlayer // inheritance used as all entities use structure similar to player
 {
 public:
-	
+
 	//std::vector < LocalPlayer*> array_EntityPtr{};
-	
+
 
 public:
 	EntityListInstance() = default;
 
 	static EntityListInstance* getEntityListInstancePtr()
 	{
-		static ptrdiff_t pCClientEntitylist_base = { SigFunctor{}("client.dll","\x8B\x15\x00\x00\x00\x00\x8B\xC8\x81\xE1\x00\x00\x00\x00\x03\xC9\x8D\x4C\x00\x00\x85\xC9\x74\x00\xC1\xE8\x00\x39\x41\x00\x75\x00\x8B\x01\xC3\x33\xC0\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08","xx????xxxx????xxxx??xxx?xx?xx?x?xxxxxxxxxxxxxxxxxxxxxxxxxxx" ).GetOffsetAddress32(2)};
+		static ptrdiff_t pCClientEntitylist_base = { SigFunctor{}("client.dll","\x8B\x15\x00\x00\x00\x00\x8B\xC8\x81\xE1\x00\x00\x00\x00\x03\xC9\x8D\x4C\x00\x00\x85\xC9\x74\x00\xC1\xE8\x00\x39\x41\x00\x75\x00\x8B\x01\xC3\x33\xC0\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08","xx????xxxx????xxxx??xxx?xx?xx?x?xxxxxxxxxxxxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
 		static EntityListInstance* entityListPtr{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<EntityListInstance>( pCClientEntitylist_base ) };
-		return    entityListPtr ;
+		return    entityListPtr;
 	}
 
 	LocalPlayer* GetOtherEntity( int index )
 	{
-		ptrdiff_t entityPtr = (ptrdiff_t) getEntityListInstancePtr() + 0x04+ index * 0x10;
+		ptrdiff_t entityPtr = (ptrdiff_t) getEntityListInstancePtr() + 0x04 + index * 0x10;
 		//ptrdiff_t otherEntityBaseAddress = g_memEdit.readPtr<ptrdiff_t>( entityPtr, 1337 );
 		return { g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs<LocalPlayer>( entityPtr ) };
 	}
 
 	bool checkValidEnt( LocalPlayer* entity )
 	{
-		
+
 		if (!entity)  // to check if entity even exists or is valid
 			return false;
 		if (entity == getLocalPlayerPtr())
 			return false;
 		if (entity->iTeamNum != 3)
 			return false;
-		if (entity->isDormant) 
+		if (entity->isDormant)
 			return false;
-	}  
+	}
 
-	LocalPlayer* GetClosestEnemy(  ) // Get closest enemy to player
+	LocalPlayer* GetClosestEnemy() // Get closest enemy to player
 	{
 		float closestDistance = 1000000;
-		
+
 		int closestDistanceIndex = -1;
 
 		LocalPlayer* localPlayer = getLocalPlayerPtr();
 
-		for(int i{0};i<900;++i)
+		for (int i{ 0 }; i < 900; ++i)
 		{
 			LocalPlayer* entity = GetOtherEntity( i );
-			if((!entity)|| (entity == localPlayer)|| (entity->iTeamNum != 3)|| (entity->isDormant))
+			if ((!entity) || (entity == localPlayer) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
-			
-			Vector3 LocalPlayerPos = (localPlayer->vecOrigin ) + (localPlayer->m_vecViewOffset);
-			
-			
-			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition(14)}; // Gets the position of other player head-position
+
+			Vector3 LocalPlayerPos = (localPlayer->vecOrigin) + (localPlayer->m_vecViewOffset);
+
+
+			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition( 14 ) }; // Gets the position of other player head-position
 
 			float distanceDiff = LocalPlayerPos.DistanceTo( otherPlayerPos );
 			if (distanceDiff < closestDistance)
@@ -252,15 +252,15 @@ public:
 				closestDistance = distanceDiff;
 				closestDistanceIndex = i;
 			}
-			
+
 		}
 		if (closestDistanceIndex == -1)
 		{
 			return nullptr;
 		}
-		
+
 		return { GetOtherEntity( closestDistanceIndex ) };
-	}	
+	}
 
 	Vector3 targetEntityVec()
 	{
@@ -268,10 +268,10 @@ public:
 		// Return a temporary Vector3 object 
 		LocalPlayer* targetEntity = GetClosestEnemy();
 
-		if ( !IsBadReadPtr(targetEntity->boneMatrixPtr1->boneArray1->boneMatrixArray,48))
-			return {targetEntity->GetBonePosition( 14 ) };
+		if (!IsBadReadPtr( targetEntity->boneMatrixPtr1->boneArray1->boneMatrixArray, 48 ))
+			return { targetEntity->GetBonePosition( 14 ) };
 		else
 			return { 0.0f,0.0f,0.0f };
 	}
-	
+
 };

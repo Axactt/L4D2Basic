@@ -1,110 +1,328 @@
 #ifndef METHODS_H
 #define METHODS_H
-
-
-#include "Includes.h"
 #include "directxmath.h"
 #include<array>
-// Use of SingleTon Methods class for using various methods
-/*Usage would be, for example:
-Code:
-Methods::Instance()->FuncCall();
- 
-// ... or ...
- 
-const auto methods = Methods::Instance();
-methods->FuncCall();*/
-using namespace DirectX;
-class Methods
+#include "Includes.h"
+#include"Player.h"
+//#include"bspflags.h"
+
+/*==========================================================================================================================================================*/
+struct cplane_t
 {
-public:
-	static Methods* Instance()
-	{
-		static Methods methods;
-		return &methods;
-	}
-	/*Usage would be, for example:
-Code:
-Methods::Instance()->FuncCall();
-
-// ... or ...
-
-const auto methods = Methods::Instance();
-methods->FuncCall();*/
+	Vector3 normal;
+	float dist;
+	uint8_t type;   // for fast side tests
+	uint8_t signbits;  // signx + (signy<<1) + (signz<<1)
+	uint8_t pad[2];
 };
 
-class MatrixCalc
+struct surface_t
+{
+	char* name; //0x0000
+	int16_t surface_prop; //0x0004
+	uint16_t flags; //0x0006
+};
+struct Ray_t
+{
+	VectorAligned  m_Start;  // starting point, centered within the extents
+	VectorAligned  m_Delta;  // direction + length of the ray
+	VectorAligned  m_StartOffset; // Add this to m_Start to Get the actual ray start
+	VectorAligned  m_Extents;     // Describes an axis aligned box extruded along a ray
+	const void* m_pWorldAxisTransform;
+	bool m_IsRay;  // are the extents zero?
+	bool m_IsSwept;     // is delta != 0?
+
+	Ray_t() : m_pWorldAxisTransform( NULL )
+	{
+	}
+
+	void Init( Vector3 const& start, Vector3 const& end )
+	{
+		m_Delta = end - start;
+
+		m_IsSwept = (m_Delta.LengthSqr() != 0);
+
+		m_Extents.Init();
+
+		m_pWorldAxisTransform = NULL;
+		m_IsRay = true;
+
+		// Offset m_Start to be in the center of the box...
+		m_StartOffset.Init();
+		m_Start = start;
+	}
+
+	void Init( Vector3 const& start, Vector3 const& end, Vector3 const& mins, Vector3 const& maxs )
+	{
+		m_Delta = end - start;
+
+		m_pWorldAxisTransform = NULL;
+		m_IsSwept = (m_Delta.LengthSqr() != 0);
+
+		m_Extents = maxs - mins;
+		m_Extents *= 0.5f;
+		m_IsRay = (m_Extents.LengthSqr() < 1e-6);
+
+		// Offset m_Start to be in the center of the box...
+		m_StartOffset = maxs + mins;
+		m_StartOffset *= 0.5f;
+		m_Start = start + m_StartOffset;
+		m_StartOffset *= -1.0f;
+	}
+
+	Vector3 InvDelta() const
+	{
+		Vector3 vecInvDelta;
+		for (int iAxis = 0; iAxis < 3; ++iAxis)
+		{
+			if (m_Delta[iAxis] != 0.0f)
+			{
+				vecInvDelta[iAxis] = 1.0f / m_Delta[iAxis];
+			}
+			else
+			{
+				vecInvDelta[iAxis] = FLT_MAX;
+			}
+		}
+		return vecInvDelta;
+	}
+};
+enum  TraceType
+{
+	TRACE_EVERYTHING = 0,
+	TRACE_WORLD_ONLY,
+	TRACE_ENTITIES_ONLY,
+	TRACE_EVERYTHING_FILTER_PROPS,
+};
+
+class ITraceFilter
 {
 public:
-	static MatrixCalc* MCInstance()
-	{
-		static MatrixCalc matrixCalc;
-		return &matrixCalc;
-	}
-	/*
-	XMMATRIX world = XMMatrixIdentity();
-	XMMATRIX viewMatrix;
-	XMMATRIX projectionMatrix;
-	LocalPlayer* player{ LocalPlayer::getLocalPlayerPtr() };
-	float aspectRatio{16.0f/9.0f};
-	float fovAngleYRadians{ 90.0f *M_PI/180.0f };
-	float nearPlane{1.0f };
-	float farPlane{250.0f }; 
-	//A portable type used to represent a vector of four 32 - bit floating - point or integer components, each aligned optimallyand mapped to a hardware vector register.
-	//Camera vectors looking at origin and its reference frame
-	const XMVECTOR DEFAULT_FORWARD_VECTOR = XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f );
-	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet( 0.0f, 1.0f, 0.0f, 0.0f );
-	const XMVECTOR DEFAULT_BACKWARD_VECTOR = XMVectorSet( 0.0f, 0.0f, -1.0f, 0.0f );
-	const XMVECTOR DEFAULT_LEFT_VECTOR = XMVectorSet( -1.0f, 0.0f, 0.0f, 0.0f );
-	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f );
-	//std::array<float,16> MatrixMVP;
-	std::array<float, 16> MatrixMVP;
+	virtual bool ShouldHitEntity( void* pEntity, int contentsMask ) = 0;
+	virtual TraceType GetTraceType() const = 0;
+};
 
-	void updateMatrix()
+
+// This is the one most normal traces will inherit from
+class CTraceFilter : public ITraceFilter
+{
+public:
+	bool ShouldHitEntity( void* pEntityHandle, int /*contentsMask*/ )
 	{
+		return !(pEntityHandle == pSkip);
+	}
+	virtual TraceType GetTraceType() const
+	{
+		return TraceType::TRACE_EVERYTHING;
+	}
+	void* pSkip;
+};
+
+#define	CONTENTS_SOLID			0x1		// an eye is never valid in a solid
+#define	CONTENTS_WINDOW			0x2		// translucent, but not watery (glass)
+#define	CONTENTS_GRATE			0x8		// alpha-tested "grate" textures.  Bullets/sight pass through, but solids don't
+#define CONTENTS_MOVEABLE		0x4000
+#define	CONTENTS_MONSTER		0x2000000
+#define	CONTENTS_MONSTERCLIP	0x20000
+#define	CONTENTS_DEBRIS			0x4000000
+#define CONTENTS_HITBOX			0x40000000
+
+#define MASK_NPCWORLDSTATIC	    ( CONTENTS_SOLID | CONTENTS_WINDOW | CONTENTS_MONSTERCLIP | CONTENTS_GRATE )
+#define STANDARD_TRACE_MASK     ( MASK_NPCWORLDSTATIC | CONTENTS_MOVEABLE | CONTENTS_MONSTER | CONTENTS_DEBRIS | CONTENTS_HITBOX )
+#define   MASK_SHOT                     (CONTENTS_SOLID|CONTENTS_MOVEABLE|CONTENTS_MONSTER|CONTENTS_WINDOW|CONTENTS_DEBRIS|CONTENTS_HITBOX)
+
+#define   DISPSURF_FLAG_SURFACE           (1<<0)
+#define   DISPSURF_FLAG_WALKABLE          (1<<1)
+#define   DISPSURF_FLAG_BUILDABLE         (1<<2)
+#define   DISPSURF_FLAG_SURFPROP1         (1<<3)
+#define   DISPSURF_FLAG_SURFPROP2         (1<<4)
+
+class CBaseTrace
+{
+public:
+	bool IsDispSurface( void )
+	{
+		return ((dispFlags & DISPSURF_FLAG_SURFACE) != 0);
+	}
+	bool IsDispSurfaceWalkable( void )
+	{
+		return ((dispFlags & DISPSURF_FLAG_WALKABLE) != 0);
+	}
+	bool IsDispSurfaceBuildable( void )
+	{
+		return ((dispFlags & DISPSURF_FLAG_BUILDABLE) != 0);
+	}
+	bool IsDispSurfaceProp1( void )
+	{
+		return ((dispFlags & DISPSURF_FLAG_SURFPROP1) != 0);
+	}
+	bool IsDispSurfaceProp2( void )
+	{
+		return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0);
+	}
+
+public:
+
+	// these members are aligned!!
+	Vector3         startpos;            // start position
+	Vector3         endpos;              // final position
+	cplane_t       plane;               // surface normal at impact
+
+	float          fraction;            // time completed, 1.0 = didn't hit anything
+
+	int            contents;            // contents on other side of surface hit
+	unsigned short dispFlags;           // displacement flags for marking surfaces with data
+
+	bool           allsolid;            // if true, plane is not valid
+	bool           startsolid;          // if true, the initial point was in a solid area
+
+	CBaseTrace()
+	{
+	}
+
+};
+
+class CGameTrace : public CBaseTrace
+{
+public:
+	bool DidHitWorld() const;
+	bool DidHitNonWorldEntity() const;
+	int GetEntityIndex() const;
+	bool DidHit() const;
+	bool IsVisible() const;
+
+public:
+
+	float               fractionleftsolid;  // time we left a solid, only valid if we started in solid
+	surface_t          surface;            // surface hit (impact surface)
+	int                 hitgroup;           // 0 == generic, non-zero is specific body part
+	short               physicsbone;        // physics bone hit by trace in studio
+	unsigned short      worldSurfaceIndex;  // Index of the msurface2_t, if applicable
+	//IClientEntity* hit_entity;
+	void* hit_entity;
+	int                 hitbox;                       // box hit by trace in studio
+
+	CGameTrace()
+	{
+	}
+
+private:
+	// No copy constructors allowed
+	CGameTrace( const CGameTrace& other ) :
+		fractionleftsolid( other.fractionleftsolid ),
+		surface( other.surface ),
+		hitgroup( other.hitgroup ),
+		physicsbone( other.physicsbone ),
+		worldSurfaceIndex( other.worldSurfaceIndex ),
+		hit_entity( other.hit_entity ),
+		hitbox( other.hitbox )
+	{
+		startpos = other.startpos;
+		endpos = other.endpos;
+		plane = other.plane;
+		fraction = other.fraction;
+		contents = other.contents;
+		dispFlags = other.dispFlags;
+		allsolid = other.allsolid;
+		startsolid = other.startsolid;
+	}
+
+	CGameTrace& operator=( const CGameTrace& other )
+	{
+		startpos = other.startpos;
+		endpos = other.endpos;
+		plane = other.plane;
+		fraction = other.fraction;
+		contents = other.contents;
+		dispFlags = other.dispFlags;
+		allsolid = other.allsolid;
+		startsolid = other.startsolid;
+		fractionleftsolid = other.fractionleftsolid;
+		surface = other.surface;
+		hitgroup = other.hitgroup;
+		physicsbone = other.physicsbone;
+		worldSurfaceIndex = other.worldSurfaceIndex;
+		hit_entity = other.hit_entity;
+		hitbox = other.hitbox;
+		return *this;
+	}
+};
+
+inline bool CGameTrace::DidHit() const
+{
+	return fraction < 1 || allsolid || startsolid;
+}
+
+inline bool CGameTrace::IsVisible() const
+{
+	return fraction > 0.97f;
+}
+
+
+typedef CGameTrace trace_t;
+
+
+class CEngineTraceClient
+{
+private:
+
+	CEngineTraceClient() = default;
+
+public:
+	using traceRayAlias = void( __fastcall* )( void*pECX, void* unused_pEDX, Ray_t& ray, unsigned int fMask, CTraceFilter* pTraceFilter, trace_t* pTrace);// earlier defined as thiscall and was causing 
+	static inline traceRayAlias traceRayPtr{};
+	static inline ptrdiff_t lpOrigTraceRayAddress{ SigFunctor{}("engine.dll", "\x53\x8B\xDC\x83\xEC\x08\x83\xE4\xF0\x83\xC4\x04\x55\x8B\x6B\x04\x89\x6C\x24\x04\x8B\xEC\xB8\xF8\x11\x00\x00\xE8\xCC\xCC\xCC\xCC\xA1\xCC\xCC\xCC\xCC\x33\xC5\x89\x45\xFC\x8B\x43\x10", "xxxxxxxxxxxxxxxxxxxxxxxxxxxx????x????xxxxxxxx").GetAddress() };
+	static CEngineTraceClient* instance()
+	{
+		static CEngineTraceClient ceTraceClient;
+		static ptrdiff_t pceTraceClient_base =  SigFunctor{}("client.dll","\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x00\x6A\x00\x6A","xx????xxxxx?x").GetOffsetAddress32( 2 ) ;
+		static CEngineTraceClient* ceTraceClient_base{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs< CEngineTraceClient>( pceTraceClient_base ) };
+		traceRayPtr = (traceRayAlias) lpOrigTraceRayAddress;
+		return ceTraceClient_base;
+	}
+	
+	bool traceRayHook(   )
+	{
+		EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
+		LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
 		
-		Vector3 camCords{ player->vecOrigin + player->m_vecViewOffset };
-		XMFLOAT3 pos = XMFLOAT3( camCords.m_x, camCords.m_y, camCords.m_z ); // initializes a xmfloat3 structure from 3 float points
-		//Loads an XMFLOAT3 into an XMVECTOR.
-		XMVECTOR posVector = XMLoadFloat3( &pos );// Position of Camera-coordinates in world-space, create a xmvector for it
-		//Calculate Camera or player - rotation matrix
-		XMMATRIX camRotationMatrix =  XMMatrixRotationRollPitchYaw( player->pitch_yaw_noedit.m_x * M_PI / 180, player->pitch_yaw_noedit.m_y * M_PI / 180, player->pitch_yaw_noedit.m_z * M_PI / 180 );
-		//Calculate unit vector of cam target based off camera forward value transformed by cam rotation
-		XMVECTOR camTarget = XMVector3TransformCoord( this->DEFAULT_FORWARD_VECTOR, camRotationMatrix );
-		//adjust cam target to be offset by the camera's current position
-		camTarget += posVector;
-		//Calculate Up direction based on current rotation
-		XMVECTOR upDirection = XMVector3TransformCoord( this->DEFAULT_UP_VECTOR, camRotationMatrix );
-		//Rebuild view matrix
-		this->viewMatrix = XMMatrixLookAtLH( posVector, camTarget, upDirection );
-		//Getting the projection matrix
-		this->projectionMatrix = XMMatrixPerspectiveFovLH( fovAngleYRadians, aspectRatio, nearPlane, farPlane );
-		XMMATRIX mvpT = (this->world) * (this->viewMatrix)* (this->projectionMatrix);
-		XMMATRIX modelViewProjectionMatrix = XMMatrixTranspose( mvpT );
-		//Conversion to XMFLOAT4X4 to change and access it as array
-		XMFLOAT4X4 matrixToFloat4;
-		XMStoreFloat4x4( &matrixToFloat4, modelViewProjectionMatrix );//Function takes a matrix  writes the components out to sixteen single-precision floating-point values at the given address. 
-		MatrixMVP[0] = matrixToFloat4._11;
-		MatrixMVP[1] = matrixToFloat4._12;
-		MatrixMVP[2] = matrixToFloat4._13;
-		MatrixMVP[3] = matrixToFloat4._14;
-		MatrixMVP[4] = matrixToFloat4._21;
-		MatrixMVP[5] = matrixToFloat4._22;
-		MatrixMVP[6] = matrixToFloat4._23;
-		MatrixMVP[7] = matrixToFloat4._24;
-		MatrixMVP[8] = matrixToFloat4._31;
-		MatrixMVP[9] = matrixToFloat4._32;
-		MatrixMVP[10] = matrixToFloat4._33;
-		MatrixMVP[11] = matrixToFloat4._34;
-		MatrixMVP[12] = matrixToFloat4._41;
-		MatrixMVP[13] = matrixToFloat4._42;
-		MatrixMVP[14] = matrixToFloat4._43;
-		MatrixMVP[15] = matrixToFloat4._44;
-	}   */
+		Vector3 entityPoshead3D{};
+		Vector3 localPlayerEyePos{localPLayerBaseAddress->vecOrigin+localPLayerBaseAddress->m_vecViewOffset};
+		
+		Ray_t ray{};
+		unsigned int fMask{};
+		CTraceFilter TraceFilter{};
+		trace_t Trace{};
+		CEngineTraceClient* pECX = instance();
+		for (int id{ 0 }; id < 900; ++id)
+		{
+			LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
+
+			if ((!entity) || (entity == localPLayerBaseAddress) ||(entity->iTeamNum!=3)|| (entity->isDormant))
+				continue;
+
+			entityPoshead3D = entity->vecOrigin+entity->m_vecViewOffset;
+			if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
+			{
+				TraceFilter.pSkip = (void*) localPLayerBaseAddress;
+				ray.Init( localPlayerEyePos, entityPoshead3D );
+				traceRayPtr(pECX ,NULL,ray, MASK_NPCWORLDSTATIC | CONTENTS_SOLID | CONTENTS_MOVEABLE | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEBRIS | CONTENTS_HITBOX, &TraceFilter, &Trace );
+				if (entity == Trace.hit_entity)
+				{
+					std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
+					return true;
+				}
+
+			}
+			
+		}
+		return false;
+	}
+
+
+
+
 
 };
-
-
-
 
 #endif
