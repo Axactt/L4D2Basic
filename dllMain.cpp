@@ -9,18 +9,18 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	freopen_s( &f, "CONOUT$", "w", stdout );
 	LocalPlayer* localPlayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
 	EntityListInstance* entityListBaseAddress = EntityListInstance::getEntityListInstancePtr();
-	std::cout<<"LocalPlayer Base-Address:\t" << std::hex << (ptrdiff_t) localPlayerBaseAddress<<'\n';
-	std::cout <<"EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress<<'\n';
-	std::cout << "Closest enemy address is:\t" << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy()<<'\n'; 
+	std::cout << "LocalPlayer Base-Address:\t" << std::hex << (ptrdiff_t) localPlayerBaseAddress << '\n';
+	std::cout << "EntityList Base-Address:\t" << std::hex << (ptrdiff_t) entityListBaseAddress << '\n';
+	std::cout << "Closest enemy address is:\t" << std::hex << (ptrdiff_t) entityListBaseAddress->GetClosestEnemy() << '\n';
 	std::cout << "The view angles pointer editable is: " << localPlayerBaseAddress->getViewAnglesPtr() << '\n';
 	//std::cout << " The localplayer head bone position is: " << localPlayerBaseAddress->GetBonePosition( 14 ).m_x << ' ' << localPlayerBaseAddress->GetBonePosition( 14 ).m_y << ' ' << localPlayerBaseAddress->GetBonePosition(14).m_z<<'\n';
-	
+
 	std::cout << " CEngineTraceClient base address: " << std::hex << (ptrdiff_t) CEngineTraceClient::instance();
 	std::cout << " Trace-ray game function: " << std::hex << CEngineTraceClient::lpOrigTraceRayAddress;
-	
+
 	// const auto dxstuff = DirectXStuff::dxstfInstance();
 	DirectXStuff::dxstfInstance()->getEndSceneHooked();
-	
+
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
 
@@ -31,7 +31,7 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 			{
 				if (i % 4 == 0)
 					std::cout << '\n';
-				std::cout << localPlayerBaseAddress->viewProjMatrix[i] <<'\t';
+				std::cout << localPlayerBaseAddress->viewProjMatrix[i] << '\t';
 			}
 			std::cout << '\n' << '\n';
 		}
@@ -40,8 +40,8 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	}
 	//unload of Dll and reource deallocation code.
 	g_HnP.unhook<7>( (char*) DirectXStuff::dxstfInstance()->lpOriginalFuncAddress );
-	if(f)
-	fclose( f );
+	if (f)
+		fclose( f );
 	FreeConsole();
 	FreeLibraryAndExitThread( hInstDLL, 0 );//to call DLL_PROCESS_DETACH and resource deallocation
 	return 0;

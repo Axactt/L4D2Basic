@@ -269,26 +269,27 @@ private:
 	CEngineTraceClient() = default;
 
 public:
-	using traceRayAlias = void( __fastcall* )( void*pECX, void* unused_pEDX, Ray_t& ray, unsigned int fMask, CTraceFilter* pTraceFilter, trace_t* pTrace);// earlier defined as thiscall and was causing 
+	//using traceRayAlias = void( __fastcall* )(void* pECX, void* unused_pEDX, Ray_t& ray, unsigned int fMask, CTraceFilter* pTraceFilter, trace_t* pTrace);// earlier defined as thiscall and was causing 
+	using traceRayAlias = void( __thiscall* )(void* pECX, Ray_t& ray, unsigned int fMask, CTraceFilter* pTraceFilter, trace_t* pTrace);
 	static inline traceRayAlias traceRayPtr{};
 	static inline ptrdiff_t lpOrigTraceRayAddress{ SigFunctor{}("engine.dll", "\x53\x8B\xDC\x83\xEC\x08\x83\xE4\xF0\x83\xC4\x04\x55\x8B\x6B\x04\x89\x6C\x24\x04\x8B\xEC\xB8\xF8\x11\x00\x00\xE8\xCC\xCC\xCC\xCC\xA1\xCC\xCC\xCC\xCC\x33\xC5\x89\x45\xFC\x8B\x43\x10", "xxxxxxxxxxxxxxxxxxxxxxxxxxxx????x????xxxxxxxx").GetAddress() };
 	static CEngineTraceClient* instance()
 	{
 		static CEngineTraceClient ceTraceClient;
-		static ptrdiff_t pceTraceClient_base =  SigFunctor{}("client.dll","\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x00\x6A\x00\x6A","xx????xxxxx?x").GetOffsetAddress32( 2 ) ;
+		static ptrdiff_t pceTraceClient_base = SigFunctor{}("client.dll", "\x8B\x0D\x00\x00\x00\x00\x8B\x01\x8B\x00\x6A\x00\x6A", "xx????xxxxx?x").GetOffsetAddress32( 2 );
 		static CEngineTraceClient* ceTraceClient_base{ g_memEdit.get_THIS_frm_ptr2ObjBaseAdrs< CEngineTraceClient>( pceTraceClient_base ) };
 		traceRayPtr = (traceRayAlias) lpOrigTraceRayAddress;
 		return ceTraceClient_base;
 	}
-	
-	bool traceRayHook(   )
+
+	void traceRayHook()
 	{
-		EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
-		LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
-		
+		//EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
+		//LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
+
 		Vector3 entityPoshead3D{};
-		Vector3 localPlayerEyePos{localPLayerBaseAddress->vecOrigin+localPLayerBaseAddress->m_vecViewOffset};
-		
+		Vector3 localPlayerEyePos{ LocalPlayer::getLocalPlayerPtr()->vecOrigin + LocalPlayer::getLocalPlayerPtr()->m_vecViewOffset };
+
 		Ray_t ray{};
 		unsigned int fMask{};
 		CTraceFilter TraceFilter{};
@@ -296,27 +297,29 @@ public:
 		CEngineTraceClient* pECX = instance();
 		for (int id{ 0 }; id < 900; ++id)
 		{
-			LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
+			LocalPlayer* entity = EntityListInstance::getEntityListInstancePtr()->GetOtherEntity( id );
 
-			if ((!entity) || (entity == localPLayerBaseAddress) ||(entity->iTeamNum!=3)|| (entity->isDormant))
+			if ((!entity) || (id==0)||(id==1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
 
-			entityPoshead3D = entity->vecOrigin+entity->m_vecViewOffset;
+			entityPoshead3D = entity->vecOrigin + entity->m_vecViewOffset;
 			if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
 			{
-				TraceFilter.pSkip = (void*) localPLayerBaseAddress;
+				TraceFilter.pSkip = (void*) LocalPlayer::getLocalPlayerPtr();
 				ray.Init( localPlayerEyePos, entityPoshead3D );
-				traceRayPtr(pECX ,NULL,ray, MASK_NPCWORLDSTATIC | CONTENTS_SOLID | CONTENTS_MOVEABLE | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEBRIS | CONTENTS_HITBOX, &TraceFilter, &Trace );
+				traceRayPtr( pECX,  ray, MASK_SHOT | CONTENTS_GRATE, &TraceFilter, &Trace );
+				//traceRayPtr( pECX, NULL, ray, MASK_NPCWORLDSTATIC | CONTENTS_SOLID | CONTENTS_MOVEABLE | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEBRIS | CONTENTS_HITBOX, &TraceFilter, &Trace );
 				if (entity == Trace.hit_entity)
 				{
-					std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
-					return true;
+					//std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
+					LocalPlayer::getLocalPlayerPtr()->aimAt( {entity->vecOrigin + entity->m_vecViewOffset} );
+					
 				}
 
 			}
-			
+
 		}
-		return false;
+	
 	}
 
 

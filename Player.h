@@ -116,7 +116,7 @@ public:
 	Vector3* getViewAnglesPtr()
 	{
 		static ptrdiff_t pCClientState_minus_8{ SigFunctor{}("engine.dll","\x8B\x0D\xCC\xCC\xCC\xCC\x8B\x49\x18\x8B\x11\x50\x8B\x82\x24\x01\x00\x00\xFF\xD0\x8B\x4E\x18","xx????xxxxxxxxxxxxxxxxx").GetOffsetAddress32( 2 ) };
-		ptrdiff_t CClientState_minus_8{ g_memEdit.readPtr<ptrdiff_t>( pCClientState_minus_8,1337 ) };
+		static ptrdiff_t CClientState_minus_8{ g_memEdit.readPtr<ptrdiff_t>( pCClientState_minus_8,1337 ) };
 		ptrdiff_t CClientState_base{ CClientState_minus_8 + 0x8 };
 		ptrdiff_t viewAngleAddrs = { CClientState_base + pCClinetState_ViewAngles };
 		static Vector3* viewAnglesPtr = g_memEdit.makePtr<Vector3>( viewAngleAddrs );

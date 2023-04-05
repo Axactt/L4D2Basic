@@ -12,3 +12,10 @@ void DrawLine( IDirect3DDevice9* pDevice, float x1, float y1, float x2, float y2
 void DrawLine( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, float width, bool antialias, D3DCOLOR color );
 
 void DrawEspBox2D( IDirect3DDevice9* pDevice, Vector2 top, Vector2 bottom, int thickness, bool antialias, D3DCOLOR color );
+
+//void DrawEspBox2D( IDirect3DDevice9* pDevice, Vector2 top, Vector2 bottom,  D3DCOLOR color );
+
+
+void Line3D( IDirect3DDevice9* pDevice, float X, float Y, float Z, float X2, float Y2, float Z2, D3DCOLOR Color );
+
+void Line3D( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, D3DCOLOR Color );

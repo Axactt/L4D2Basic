@@ -9,6 +9,7 @@ class DirectXStuff
 private:
 	DirectXStuff() = default;
 public:
+	
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
 	 ptrdiff_t lpOriginalFuncAddress{};
@@ -48,7 +49,7 @@ public:
 	{
 		//Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
 		CEngineTraceClient::instance()->traceRayHook();
-
+		
 
 		//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
 		// all drawing stuff goes here
@@ -69,8 +70,10 @@ public:
 		b.m_y += 4;
 		t.m_y -= 4;
 
-		DrawLine( pDevice, l, r, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		DrawLine( pDevice, t, b, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		//DrawLine( pDevice, l, r, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		//DrawLine( pDevice, t, b, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		Line3D( pDevice, l, r, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		Line3D( pDevice, t, b,  D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		
 		//Drawing snapLines to various entities
 
@@ -81,11 +84,11 @@ public:
 		Vector2 entityBottomPos2D{};
 		Vector3 entityBottomPos3D{};
 
-		for (int id{0};id<2048;++id) 
+		for (int id{0};id<900;++id) 
 		{ 
-			LocalPlayer* entity = entityListAddress->GetOtherEntity( id );
+			LocalPlayer* entity = EntityListInstance::getEntityListInstancePtr()->GetOtherEntity( id );
 		
-			if( (!entity)|| (entity == localPLayerBaseAddress)|| (entity->iTeamNum != 3) || (entity->isDormant) )
+			if( (!entity)|| (id==0)||(id==1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
 		
 		   entityPoshead3D = entity->m_vecViewOffset+entity->vecOrigin;
@@ -99,12 +102,15 @@ public:
 			
 				entityBottomPos3D = entity->vecOrigin;
 
-			     if (localPLayerBaseAddress->worldToScreen( entityPoshead3D, entityPoshead2D ))
+			     if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityPoshead3D, entityPoshead2D ))
 			     {
+					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
 				//DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 				 
 				if(localPLayerBaseAddress->worldToScreen(entityBottomPos3D, entityBottomPos2D ))
-			      DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+			      
+					DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+				//DrawEspBox2D( pDevice, entityBottomPos2D, entityPoshead2D, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 
 			     }
 		    }
