@@ -82,7 +82,6 @@ class LocalPlayer
 {
 public:
 	LocalPlayer() = default;
-
 	char pad_0000[16]; //0x0000
 	char* str_infection_state; //0x0010
 	char pad_0014[68]; //0x0014
@@ -104,7 +103,10 @@ public:
 	char pad_090C[2712]; //0x090C
 	Vector3 pitch_yaw_noedit; //0x13A4
 	char pad_13B0[12]; //0x13B0
+
+
 	float viewProjMatrix[16]{};
+
 
 	static LocalPlayer* getLocalPlayerPtr() // to get a this pointer of object or maybe call base-address of object
 	{

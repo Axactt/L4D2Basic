@@ -2,6 +2,9 @@
 #include "Includes.h"
 
 //drawing filled rectangle function to be called in hookedEndscene
+
+extern ID3DXLine* g_pLine; // declaration of global variable(inherent external linkage) to put it in scope of current translation unit.
+
 void DrawFillRect( IDirect3DDevice9* pDevice, int x, int y, int w, int h, unsigned char r, unsigned char g, unsigned char b );
 
 // Drawing lines here by Calling ID3DXLine interface

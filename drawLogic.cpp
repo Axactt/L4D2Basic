@@ -1,21 +1,26 @@
 #include"drawLogic.h"
-
+#include"Player.h"
 // Drawing lines here by Calling ID3DXLine interface
 // and D3DXCreateLine function to get address of interface
+
+ID3DXLine* g_pLine; //Crteating a global variable here and stop creating/releasing it every frame Prevented the LAG
+
+
+
+
 void DrawLine( IDirect3DDevice9* pDevice, float x1, float y1, float x2, float y2, float width, bool antialias, D3DCOLOR color )
 {
-	ID3DXLine* pLine{}; // Interface implements line drawing using textured triangles
-	
-
-	D3DXCreateLine( pDevice, &pLine );
+ // Interface implements line drawing using textured triangles
+	if(!g_pLine)
+	D3DXCreateLine( pDevice, &g_pLine );
 	D3DXVECTOR2 line[] = { D3DXVECTOR2( x1,y1 ),D3DXVECTOR2( x2,y2 ) };
-    pLine->SetWidth( width );
+	g_pLine->SetWidth( width );
 	if (antialias)
-		pLine->SetAntialias( 1 );
+		g_pLine->SetAntialias( 1 );
 	//pLine->Begin(); // exception is being thrown here when game is crashing on unhook
-	pLine->Draw( line, 2, color );
+	g_pLine->Draw( line, 2, color );
 	//pLine->End();
-	pLine->Release();
+	//pLine->Release();
 }
 
 
