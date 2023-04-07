@@ -5,6 +5,9 @@
 
 extern ID3DXLine* g_pLine; // declaration of global variable(inherent external linkage) to put it in scope of current translation unit.
 
+
+extern ID3DXFont* g_pFont; // declaration of global font variable
+
 void DrawFillRect( IDirect3DDevice9* pDevice, int x, int y, int w, int h, unsigned char r, unsigned char g, unsigned char b );
 
 // Drawing lines here by Calling ID3DXLine interface
@@ -22,3 +25,5 @@ void DrawEspBox2D( IDirect3DDevice9* pDevice, Vector2 top, Vector2 bottom, int t
 void Line3D( IDirect3DDevice9* pDevice, float X, float Y, float Z, float X2, float Y2, float Z2, D3DCOLOR Color );
 
 void Line3D( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, D3DCOLOR Color );
+
+void DrawText( IDirect3DDevice9* pDevice,const char* text, float x, float y, D3DCOLOR color );

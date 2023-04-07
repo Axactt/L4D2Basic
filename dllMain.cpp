@@ -40,6 +40,9 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	}
 	//unload of Dll and reource deallocation code.
 	g_HnP.unhook<7>( (char*) DirectXStuff::dxstfInstance()->lpOriginalFuncAddress );
+
+	Sleep(1500);
+
 	if (f)
 		fclose( f );
 	FreeConsole();

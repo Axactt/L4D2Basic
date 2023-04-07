@@ -5,7 +5,7 @@
 
 ID3DXLine* g_pLine; //Crteating a global variable here and stop creating/releasing it every frame Prevented the LAG
 
-
+ID3DXFont* g_pFont; // craete a global font variable here and not inside loop
 
 
 void DrawLine( IDirect3DDevice9* pDevice, float x1, float y1, float x2, float y2, float width, bool antialias, D3DCOLOR color )
@@ -98,6 +98,18 @@ void Line3D( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, D3DCOLOR Color
 	Line3D( pDevice, src.m_x, src.m_y, 1.0f, dst.m_x, dst.m_y, 1.0f, Color );
 
 
+
+}
+void DrawText( IDirect3DDevice9* pDevice,const char* text, float x, float y, D3DCOLOR color )
+{
+	RECT rect;
+	if (g_pFont)
+	D3DXCreateFont( pDevice, 14, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Arial", &g_pFont );
+	SetRect( &rect, x + 1, y + 1, x + 1, y + 1 );
+	g_pFont->DrawTextA( NULL, text, -1, &rect, DT_CENTER | DT_NOCLIP, D3DCOLOR_ARGB( 255, 0, 0, 0 ) );
+
+	SetRect( &rect, x , y , x , y  );
+	g_pFont->DrawTextA( NULL, text, -1, &rect, DT_CENTER | DT_NOCLIP, color );
 
 }
 // drawing 2d boxes around the entities 

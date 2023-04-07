@@ -302,7 +302,7 @@ public:
 			if ((!entity) || (id==0)||(id==1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
 
-			entityPoshead3D = entity->vecOrigin + entity->m_vecViewOffset;
+			entityPoshead3D = LocalPlayer::getLocalPlayerPtr()->GetBonePosition( entity, 14 );
 			if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
 			{
 				TraceFilter.pSkip = (void*) LocalPlayer::getLocalPlayerPtr();
@@ -312,7 +312,7 @@ public:
 				if (entity == Trace.hit_entity)
 				{
 					//std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
-					LocalPlayer::getLocalPlayerPtr()->aimAt( {entity->vecOrigin + entity->m_vecViewOffset} );
+					LocalPlayer::getLocalPlayerPtr()->aimAt( LocalPlayer::getLocalPlayerPtr()->GetBonePosition(entity,14 ));
 					
 				}
 
@@ -321,9 +321,6 @@ public:
 		}
 	
 	}
-
-
-
 
 
 };

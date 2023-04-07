@@ -77,8 +77,8 @@ public:
 		
 		//Drawing snapLines to various entities
 
-		EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
-		LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
+		//EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
+		//LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
 		Vector2 entityPoshead2D{};
 		Vector3 entityPoshead3D{};
 		Vector2 entityBottomPos2D{};
@@ -107,7 +107,7 @@ public:
 					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
 				//DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 				 
-				if(localPLayerBaseAddress->worldToScreen(entityBottomPos3D, entityBottomPos2D ))
+				if(LocalPlayer::getLocalPlayerPtr()->worldToScreen(entityBottomPos3D, entityBottomPos2D ))
 			      
 					DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 				//DrawEspBox2D( pDevice, entityBottomPos2D, entityPoshead2D, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );

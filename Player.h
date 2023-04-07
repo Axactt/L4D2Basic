@@ -147,14 +147,17 @@ public:
 	}
 
 
-	Vector3 GetBonePosition( int boneID )
+	Vector3 GetBonePosition(LocalPlayer* entity, int boneID )
 	{
 		Vector3 bonePos{};
-		auto boneArrayAccess = boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
+		if (!entity || !(entity->boneMatrixPtr1))
+			return { 0.0f,0.0f,0.0f };
+		auto boneArrayAccess = entity->boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
 		/*auto boneAccessShared = std::make_shared<float[]>(12);
 		RtlMoveMemory( &boneAccessShared, &boneArrayAccess, 48 );
 		auto boneAccessWeak = std::weak_ptr{ boneAccessShared };
 		auto boneCheckFail = boneAccessWeak.expired(); */
+		// this has to be fixed up IsBadReadPtr() is deperecated
 		BOOL boneCheckFail = IsBadReadPtr( boneArrayAccess, 48 ); // Function returns Zero if calling process has read access to memory block
 		if (!boneCheckFail)
 		{
@@ -246,7 +249,7 @@ public:
 			Vector3 LocalPlayerPos = (localPlayer->vecOrigin) + (localPlayer->m_vecViewOffset);
 
 
-			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition( 14 ) }; // Gets the position of other player head-position
+			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition(entity, 14 ) }; // Gets the position of other player head-position
 
 			float distanceDiff = LocalPlayerPos.DistanceTo( otherPlayerPos );
 			if (distanceDiff < closestDistance)
@@ -263,7 +266,7 @@ public:
 
 		return { GetOtherEntity( closestDistanceIndex ) };
 	}
-
+/*
 	Vector3 targetEntityVec()
 	{
 		// Use 14 for head bone-id
@@ -274,6 +277,6 @@ public:
 			return { targetEntity->GetBonePosition( 14 ) };
 		else
 			return { 0.0f,0.0f,0.0f };
-	}
+	}  */
 
 };
