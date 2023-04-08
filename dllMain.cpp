@@ -25,6 +25,7 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	{
 
 		localPlayerBaseAddress->updateMatrix();
+		
 		if (GetAsyncKeyState( VK_F1 ) & 1)
 		{
 			for (int i{ 0 }; i < 16; ++i)

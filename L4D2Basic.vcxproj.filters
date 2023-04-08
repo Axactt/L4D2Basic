@@ -45,6 +45,9 @@
     <ClInclude Include="dxStuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Extra.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllMain.cpp">

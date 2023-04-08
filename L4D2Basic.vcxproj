@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Extra.h" />
     <ClInclude Include="drawLogic.h" />
     <ClInclude Include="dxStuff.h" />
     <ClInclude Include="Methods.h" />

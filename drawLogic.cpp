@@ -112,6 +112,69 @@ void DrawText( IDirect3DDevice9* pDevice,const char* text, float x, float y, D3D
 	g_pFont->DrawTextA( NULL, text, -1, &rect, DT_CENTER | DT_NOCLIP, color );
 
 }
+
+//Drwaing 3d boxes around entities
+
+void DrawEspBox3D( IDirect3DDevice9* pDevice, Vector3 entityTop, Vector3 entityOrigin, Vector3 viewAngle, int width, int thickness, D3DCOLOR color )
+{
+
+	float height3D = abs(entityTop.m_z- entityOrigin.m_z );
+	Vector3 o1, o2, o3, o4, t1, t2, t3, t4;
+	o1.m_z = o2.m_z = o3.m_z = o4.m_z = entityOrigin.m_z;
+
+	o1.m_x = entityOrigin.m_x + (cosf( angleRad( viewAngle.m_y + 45 ) ) * width);
+	o1.m_y = entityOrigin.m_y+ (sinf( angleRad( viewAngle.m_y + 45 ) ) * width);
+
+	o2.m_x = entityOrigin.m_x + (cosf( angleRad( viewAngle.m_y + 135 ) ) * width);
+	o2.m_y = entityOrigin.m_y + (sinf( angleRad( viewAngle.m_y + 135 ) ) * width);
+
+	o3.m_x = entityOrigin.m_x + (cosf( angleRad( viewAngle.m_y + 225 ) ) * width);
+	o3.m_y = entityOrigin.m_y + (sinf( angleRad( viewAngle.m_y + 225 ) ) * width);
+
+	o4.m_x = entityOrigin.m_x + (cosf( angleRad( viewAngle.m_y + 315 ) ) * width);
+	o4.m_y = entityOrigin.m_y + (sinf( angleRad( viewAngle.m_y + 315 ) ) * width);
+
+	t1.m_x = o1.m_x;
+	t1.m_y = o1.m_y;
+	t1.m_z = o1.m_z + height3D;
+
+	t2.m_x = o2.m_x;
+	t2.m_y = o2.m_y;
+	t2.m_z = o2.m_z + height3D;
+
+	t3.m_x = o3.m_x;
+	t3.m_y = o3.m_y;
+	t3.m_z = o3.m_z + height3D;
+
+	t4.m_x = o4.m_x;
+	t4.m_y = o4.m_y;
+	t4.m_z = o4.m_z + height3D;
+
+	Vector2 o1two, o2two, o3two, o4two, t1two, t2two, t3two, t4two;
+
+	if (W2S( o1, o1two ) && W2S( o2, o2two ) && W2S( o3, o3two ) && W2S( o4, o4two ) && W2S( t1, t1two ) && W2S( t2, t2two ) && W2S( t3, t3two ) && W2S( t4, t4two ))
+	{
+		//Draw lines for columns
+		DrawLine( pDevice,t1two, o1two, thickness, false, color );
+		DrawLine( pDevice, t2two, o2two, thickness, false, color );
+		DrawLine( pDevice, t3two, o3two, thickness, false, color );
+		DrawLine( pDevice, t4two, o4two, thickness, false, color );
+		//DrawLines for Top bases
+		DrawLine( pDevice, t1two, t2two, thickness, false, color );
+		DrawLine( pDevice, t2two, t3two, thickness, false, color );
+		DrawLine( pDevice, t3two, t4two, thickness, false, color );
+		DrawLine( pDevice, t4two, t1two, thickness, false, color );
+		//DrawLines for bottom bases
+		DrawLine( pDevice, o1two, o2two, thickness, false, color );
+		DrawLine( pDevice, o2two, o3two, thickness, false, color );
+		DrawLine( pDevice, o3two, o4two, thickness, false, color );
+		DrawLine( pDevice, o4two, o1two, thickness, false, color );
+
+
+	}
+
+
+}
 // drawing 2d boxes around the entities 
 void DrawEspBox2D( IDirect3DDevice9* pDevice, Vector2 top, Vector2 bottom, int thickness, bool antialias, D3DCOLOR color )
 //void DrawEspBox2D( IDirect3DDevice9* pDevice, Vector2 top, Vector2 bottom,  D3DCOLOR color )

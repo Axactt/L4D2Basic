@@ -12,6 +12,10 @@
 #define pCCSInput   (ptrdiff_t)0x6c5d7c
 #pragma endregion
 
+#define angleRad(x)  ((x)*M_PI/180)
+#define W2S(x,y)  LocalPlayer::getLocalPlayerPtr()->worldToScreen(x,y)
+
+
 extern Vector2 g_windowSize;
 
 
@@ -94,15 +98,16 @@ public:
 	int32_t health; //0x00EC
 	char pad_00F0[4]; //0x00F0
 	Vector3 m_vecViewOffset; //0x00F4
-	char pad_0100[36]; //0x0100
+	Vector3 mVecVelocity; //0x100
+	char pad_010C[24]; //0x0100
 	Vector3 vecOrigin; //0x0124
 	char pad_0130[1424]; //0x0130
 	class N000030A1* boneMatrixPtr1; //0x06C0
 	char pad_06C4[580]; //0x06C4
 	class N00002FF8* boneMatrixPtr2; //0x0908
-	char pad_090C[2712]; //0x090C
-	Vector3 pitch_yaw_noedit; //0x13A4
-	char pad_13B0[12]; //0x13B0
+	char pad_090C[2680]; //0x090C
+	Vector3 viewAngles; //0x1384
+	char pad_1390[12]; //0x1390
 
 
 	float viewProjMatrix[16]{};
@@ -193,6 +198,17 @@ public:
 		screen.m_y = -((windowSize.m_y / 2) * (NDC.m_y)) + (NDC.m_y) + windowSize.m_y / 2;
 		return true;
 	}
+
+	Vector3 TransFormVector( Vector3 source, Vector3 angle, float dis )
+	{
+		Vector3 newPosition{};
+		newPosition.m_x = source.m_x + (cosf(angleRad(angle.m_y)) * dis);
+		newPosition.m_y = source.m_y + (sinf( angleRad( angle.m_y) )  * dis);
+		newPosition.m_z = source.m_z + (tanf( angleRad(angle.m_x)) * dis);
+		return newPosition;
+	}
+	
+
 };
 
 class EntityListInstance :public LocalPlayer // inheritance used as all entities use structure similar to player

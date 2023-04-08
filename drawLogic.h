@@ -27,3 +27,5 @@ void Line3D( IDirect3DDevice9* pDevice, float X, float Y, float Z, float X2, flo
 void Line3D( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, D3DCOLOR Color );
 
 void DrawText( IDirect3DDevice9* pDevice,const char* text, float x, float y, D3DCOLOR color );
+
+void DrawEspBox3D( IDirect3DDevice9* pDevice,Vector3 entityTop,Vector3 entityOrigin, Vector3 viewAngle, int width, int thickness, D3DCOLOR color );

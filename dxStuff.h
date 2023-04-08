@@ -4,18 +4,19 @@
 #include"UTILITIES/HookTemplate.h"
 #include"Player.h"
 #include"Methods.h"
+#include"Extra.h"
 class DirectXStuff
 {
 private:
 	DirectXStuff() = default;
 public:
-	
+
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
-	 ptrdiff_t lpOriginalFuncAddress{};
-	 // interface pointer to IDirect3DDevice9
+	ptrdiff_t lpOriginalFuncAddress{};
+	// interface pointer to IDirect3DDevice9
 	IDirect3DDevice9* pDevice{};
-	
+
 	static DirectXStuff* dxstfInstance()
 	{
 		static DirectXStuff dxstuff;
@@ -45,19 +46,19 @@ public:
 	// Create our hook function having prototype as Endscene
 	// FIX THIS LATER== TOO MUCH STATIC
 	//hookEndScene member function has to be made static for being called by hook inside its own class
-    static HRESULT __stdcall hookEndScene( IDirect3DDevice9* pDevice )
+	static HRESULT __stdcall hookEndScene( IDirect3DDevice9* pDevice )
 	{
 		//Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
 		CEngineTraceClient::instance()->traceRayHook();
-		
+
 
 		//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
 		// all drawing stuff goes here
 		// Drawing custom Crosshair for check
-		
+
 		Vector2 crossHair2d{};
-		crossHair2d.m_x = g_windowSize.m_x / 2 ;
-		crossHair2d.m_y = g_windowSize.m_y/ 2;
+		crossHair2d.m_x = g_windowSize.m_x / 2;
+		crossHair2d.m_y = g_windowSize.m_y / 2;
 
 		Vector2 l{};
 		Vector2 r{};
@@ -73,8 +74,8 @@ public:
 		//DrawLine( pDevice, l, r, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		//DrawLine( pDevice, t, b, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		Line3D( pDevice, l, r, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		Line3D( pDevice, t, b,  D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		
+		Line3D( pDevice, t, b, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+
 		//Drawing snapLines to various entities
 
 		//EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
@@ -84,42 +85,61 @@ public:
 		Vector2 entityBottomPos2D{};
 		Vector3 entityBottomPos3D{};
 
-		for (int id{0};id<900;++id) 
-		{ 
+		for (int id{ 0 }; id < 900; ++id)
+		{
 			LocalPlayer* entity = EntityListInstance::getEntityListInstancePtr()->GetOtherEntity( id );
-		
-			if( (!entity)|| (id==0)||(id==1) || (entity->iTeamNum != 3) || (entity->isDormant))
+
+			if ((!entity) || (id == 0) || (id == 1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
-		
-		   entityPoshead3D = entity->m_vecViewOffset+entity->vecOrigin;
-			
 
-		    if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
+			entityPoshead3D = entity->m_vecViewOffset + entity->vecOrigin;
 
-		    {
 
-			Vector2 dest{ g_windowSize.m_x / 2, g_windowSize.m_y };
-			
+			if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
+
+			{
+
+				Vector2 dest{ g_windowSize.m_x / 2, g_windowSize.m_y };
+
 				entityBottomPos3D = entity->vecOrigin;
 
-			     if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityPoshead3D, entityPoshead2D ))
-			     {
+				if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityPoshead3D, entityPoshead2D ))
+				{
 					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
-				//DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
-				 
-				if(LocalPlayer::getLocalPlayerPtr()->worldToScreen(entityBottomPos3D, entityBottomPos2D ))
-			      
-					DrawEspBox2D(pDevice,entityBottomPos2D,entityPoshead2D,2,false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
-				//DrawEspBox2D( pDevice, entityBottomPos2D, entityPoshead2D, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 
-			     }
-		    }
+					if(extra::g_choices.snapLines)
+					{
+						DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+					}
+
+					if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityBottomPos3D, entityBottomPos2D ))
+					{
+						//If world2screen valid for entity bottom position or vecOrigin draw 2d and 3d esp boxes
+						if (extra::g_choices.box2D)
+						{
+							DrawEspBox2D( pDevice, entityBottomPos2D, entityPoshead2D, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+							//DrawEspBox2D( pDevice, entityBottomPos2D, entityPoshead2D, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+						}
+
+						//DrwaEspBox3d placed here as w2s shold br true for entityBottomPos3D
+						if (extra::g_choices.box3D)
+						{
+							DrawEspBox3D( pDevice, entityPoshead3D, entityBottomPos3D, entity->viewAngles, 25, 2, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+
+
+						}
+
+
+					}
+
+				}
+			}
 
 		}
 		return dxstfInstance()->EndScenePtr( pDevice );
 	}
 
-	void* FindEndScene( )
+	void* FindEndScene()
 	{
 		//get HWND of Game window
 		HWND gameWindow = FindWindowA( NULL, "Left 4 Dead 2 - Direct3D 9" );
@@ -178,7 +198,7 @@ public:
 
 				std::cout << " IDirect3DDevice9* pDevice --->\t" << std::hex << pDevice << '\n';
 				std::cout << " Present() addrs --->\t" << std::hex << presentAddress << '\n';
-				std::cout << " EndScene() addrs --->\t" << std::hex << endSceneAddress << '\n';  
+				std::cout << " EndScene() addrs --->\t" << std::hex << endSceneAddress << '\n';
 
 				//pDevice->Release(); // release the IDirect3DDevice9* interface pDevice created to prevent memory leaks
 				return endSceneAddress;
@@ -202,7 +222,7 @@ public:
 			//getWindowSize( gameWindow );
 
 			//type-cast it to a EndScene func pointer type-alias to EndScenePtr variable
-			EndScenePtr = (aliasEndScene)FindEndScene( );
+			EndScenePtr = (aliasEndScene) FindEndScene();
 
 		}
 		//This will assign the real-endscene function address to EndSceneptr functionptr variable
@@ -211,7 +231,7 @@ public:
 
 		//src original EndScene function address saved here in a member variable
 		lpOriginalFuncAddress = (ptrdiff_t) EndScenePtr;
-		ptrdiff_t lpFinalHookaddrs = (ptrdiff_t) &DirectXStuff::hookEndScene; 
+		ptrdiff_t lpFinalHookaddrs = (ptrdiff_t) &DirectXStuff::hookEndScene;
 		//7 is the length of stolen bytes
 		if (EndScenePtr) //NULL-POINTER CHECK TO AVOID HOOK TO NULLPTR
 			EndScenePtr = (aliasEndScene) g_HnP.trampHook<7>( (char*) lpOriginalFuncAddress, (char*) lpFinalHookaddrs );
@@ -219,6 +239,6 @@ public:
 
 };
 
-	inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
+inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
 
 //USage is in dllmain like call DirectXStuff::dxstfInstance()->getEndSceneHooked()
