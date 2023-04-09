@@ -51,39 +51,48 @@ public:
 		//Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
 		CEngineTraceClient::instance()->traceRayHook();
 
+		//drawing text stuff
+		//This has to be fixed : Not working OK
+		if(extra::g_choices.statusText)
+		{
+			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", g_windowSize.m_x / 2, g_windowSize.m_y - 20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		}
 
-		//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
-		// all drawing stuff goes here
-		// Drawing custom Crosshair for check
+		if(extra::g_choices.rcsCrossHair)
+		{
+			//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
+			// all drawing stuff goes here
+			// Drawing custom Crosshair for check
 
-		Vector2 crossHair2d{};
-		crossHair2d.m_x = g_windowSize.m_x / 2;
-		crossHair2d.m_y = g_windowSize.m_y / 2;
+			Vector2 crossHair2d{};
+			crossHair2d.m_x = g_windowSize.m_x / 2;
+			crossHair2d.m_y = g_windowSize.m_y / 2;
 
-		Vector2 l{};
-		Vector2 r{};
-		Vector2 t{};
-		Vector2 b{};
+			Vector2 l{};
+			Vector2 r{};
+			Vector2 t{};
+			Vector2 b{};
 
-		l = r = t = b = crossHair2d; // point to representing crosshair
-		l.m_x -= 4;
-		r.m_x += 4;
-		b.m_y += 4;
-		t.m_y -= 4;
+			l = r = t = b = crossHair2d; // point to representing crosshair
+			l.m_x -= 4;
+			r.m_x += 4;
+			b.m_y += 4;
+			t.m_y -= 4;
 
-		//DrawLine( pDevice, l, r, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		//DrawLine( pDevice, t, b, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		Line3D( pDevice, l, r, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-		Line3D( pDevice, t, b, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			DrawLine( pDevice, l, r, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			DrawLine( pDevice, t, b, 2, false, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			//Line3D( pDevice, l, r, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			//Line3D( pDevice, t, b, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		}
 
 		//Drawing snapLines to various entities
 
 		//EntityListInstance* entityListAddress = EntityListInstance::getEntityListInstancePtr();
 		//LocalPlayer* localPLayerBaseAddress = LocalPlayer::getLocalPlayerPtr();
-		Vector2 entityPoshead2D{};
-		Vector3 entityPoshead3D{};
-		Vector2 entityBottomPos2D{};
-		Vector3 entityBottomPos3D{};
+		//Vector2 entityPoshead2D{};
+		//Vector3 entityPoshead3D{};
+		//Vector2 entityBottomPos2D{};
+		//Vector3 entityBottomPos3D{};
 
 		for (int id{ 0 }; id < 900; ++id)
 		{
@@ -92,7 +101,7 @@ public:
 			if ((!entity) || (id == 0) || (id == 1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
 
-			entityPoshead3D = entity->m_vecViewOffset + entity->vecOrigin;
+			Vector3 entityPoshead3D = entity->vecOrigin + entity->m_vecViewOffset;
 
 
 			if (entityPoshead3D.m_x != 0.0 && entityPoshead3D.m_y != 0.0f && entityPoshead3D.m_z != 0.0f)
@@ -101,8 +110,8 @@ public:
 
 				Vector2 dest{ g_windowSize.m_x / 2, g_windowSize.m_y };
 
-				entityBottomPos3D = entity->vecOrigin;
-
+				Vector3 entityBottomPos3D = entity->vecOrigin;
+				Vector2 entityPoshead2D{};
 				if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityPoshead3D, entityPoshead2D ))
 				{
 					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
@@ -111,7 +120,7 @@ public:
 					{
 						DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 					}
-
+					Vector2 entityBottomPos2D{};
 					if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityBottomPos3D, entityBottomPos2D ))
 					{
 						//If world2screen valid for entity bottom position or vecOrigin draw 2d and 3d esp boxes
@@ -128,7 +137,19 @@ public:
 
 
 						}
+						if (extra::g_choices.headLineEsp)
+						{
+							Vector3 entityAngles{entity->viewAngles};
+							Vector3 endPoint3D{ entity->TransFormVector( entityPoshead3D,entityAngles,60 ) };// 60 is distance to which velocity vector has to be drwan
+							Vector2 endPoint2D{};	
+							W2S( entityPoshead3D, entityPoshead2D );
+							if (W2S( endPoint3D, endPoint2D ))
+							{
+								DrawLine( pDevice, entityPoshead2D, endPoint2D, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
+							}
 
+
+						}
 
 					}
 

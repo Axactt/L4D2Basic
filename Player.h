@@ -198,7 +198,7 @@ public:
 		screen.m_y = -((windowSize.m_y / 2) * (NDC.m_y)) + (NDC.m_y) + windowSize.m_y / 2;
 		return true;
 	}
-
+	// function to transformvector at any given angle rotation
 	Vector3 TransFormVector( Vector3 source, Vector3 angle, float dis )
 	{
 		Vector3 newPosition{};

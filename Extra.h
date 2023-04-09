@@ -10,10 +10,10 @@ namespace extra
 		bool snapLines{ false };
 		bool box2D{ false };
 		bool status2D{ false };
-		bool statusText{ true };
+		bool statusText{ false };
 		bool box3D{ true };
 		bool velEsp{ true };
-		bool headLineEsp{ true };
+		bool headLineEsp{ false };
 		bool rcsCrossHair{ true };
 	};
 	inline Choices g_choices{};
