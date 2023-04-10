@@ -10,7 +10,7 @@ namespace extra
 		bool snapLines{ false };
 		bool box2D{ false };
 		bool status2D{ false };
-		bool statusText{ false };
+		bool statusText{ true };
 		bool box3D{ true };
 		bool velEsp{ true };
 		bool headLineEsp{ false };

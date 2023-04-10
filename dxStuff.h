@@ -5,14 +5,18 @@
 #include"Player.h"
 #include"Methods.h"
 #include"Extra.h"
+
 class DirectXStuff
 {
 private:
 	DirectXStuff() = default;
 public:
-
+	
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
+	
+	
+
 	ptrdiff_t lpOriginalFuncAddress{};
 	// interface pointer to IDirect3DDevice9
 	IDirect3DDevice9* pDevice{};
@@ -22,9 +26,9 @@ public:
 		static DirectXStuff dxstuff;
 		return &dxstuff;
 	}
-
+	
 	// get the size of GameWindow
-	Vector2 getWindowSize()
+	static  Vector2 getWindowSize()
 	{
 		//get HWND of Game window
 		HWND gameWindow = FindWindowA( NULL, "Left 4 Dead 2 - Direct3D 9" );
@@ -42,6 +46,10 @@ public:
 		return { gameWindowWidth,gameWindowHeight };
 
 	}
+	// A separate variable for window-size created
+	// apart from global variable to be used inside class
+	static inline Vector2 windowSize{ getWindowSize() };
+	
 
 	// Create our hook function having prototype as Endscene
 	// FIX THIS LATER== TOO MUCH STATIC
@@ -55,7 +63,7 @@ public:
 		//This has to be fixed : Not working OK
 		if(extra::g_choices.statusText)
 		{
-			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", g_windowSize.m_x / 2, g_windowSize.m_y - 20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", windowSize.m_x / 2,  windowSize.m_y-20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		}
 
 		if(extra::g_choices.rcsCrossHair)
@@ -259,7 +267,12 @@ public:
 	}
 
 };
+// Make a separate global variable at last to deal with transfer of value to player.h
+//Cannot inlude "dxstuff.h" in "player.h" as it will lead to cyclic redundancy includes
+//So a global variable defined here to transfer window-size value
+//In "Player.h" extern declaration given 
+Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() }; 
 
-inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
+//inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
 
 //USage is in dllmain like call DirectXStuff::dxstfInstance()->getEndSceneHooked()

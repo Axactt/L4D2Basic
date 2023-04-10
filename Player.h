@@ -15,9 +15,9 @@
 #define angleRad(x)  ((x)*M_PI/180)
 #define W2S(x,y)  LocalPlayer::getLocalPlayerPtr()->worldToScreen(x,y)
 
-
-extern Vector2 g_windowSize;
-
+// extern declaration for global variable g_windowSize 
+//from  "dxstuff.h" to be used in "Player.h"
+extern Vector2 g_windowSize; 
 
 class CRender
 {

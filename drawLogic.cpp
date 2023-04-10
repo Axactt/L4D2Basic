@@ -3,15 +3,15 @@
 // Drawing lines here by Calling ID3DXLine interface
 // and D3DXCreateLine function to get address of interface
 
-ID3DXLine* g_pLine; //Crteating a global variable here and stop creating/releasing it every frame Prevented the LAG
+ID3DXLine* g_pLine{}; //Crteating a global variable here and stop creating/releasing it every frame Prevented the LAG
 
-ID3DXFont* g_pFont; // craete a global font variable here and not inside loop
+ID3DXFont* g_pFont{}; // craete a global font variable here and not inside loop
 
 
 void DrawLine( IDirect3DDevice9* pDevice, float x1, float y1, float x2, float y2, float width, bool antialias, D3DCOLOR color )
 {
  // Interface implements line drawing using textured triangles
-	if(!g_pLine)
+	if(!g_pLine) // Only create a g_pLine variable if none is there
 	D3DXCreateLine( pDevice, &g_pLine );
 	D3DXVECTOR2 line[] = { D3DXVECTOR2( x1,y1 ),D3DXVECTOR2( x2,y2 ) };
 	g_pLine->SetWidth( width );
@@ -103,10 +103,12 @@ void Line3D( IDirect3DDevice9* pDevice, Vector2 src, Vector2 dst, D3DCOLOR Color
 void DrawTextEsp ( IDirect3DDevice9* pDevice,const char* text, float x, float y, D3DCOLOR color )
 {
 	RECT rect{};
-	if (g_pFont)
+	if (!g_pFont) // Only use  D3DxCreateFontA function if g_PFont Interface pointer is null
 	//D3DXCreateFontA version has to be used,D3DXCreateFont default to D3DXCreateFontW which requires LPCWSTR type 2nd last parameter
 	D3DXCreateFontA( pDevice, 14, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Arial", &g_pFont );
+
 	SetRect( &rect, x + 1, y + 1, x + 1, y + 1 );
+
 	g_pFont->DrawTextA( NULL, text, -1, &rect, DT_CENTER | DT_NOCLIP, D3DCOLOR_ARGB( 255, 0, 0, 0 ) );
 
 	SetRect( &rect, x , y , x , y  );
