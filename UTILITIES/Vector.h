@@ -60,6 +60,13 @@ public:
 		m_y /= vec.m_y;
 		return *this;
 	}
+	Vector2& operator*( const float f )
+	{
+		m_x *= f;
+		m_y *= f;
+		return *this;
+	}
+
 	Vector2& operator*=( const float f )
 	{
 		m_x *= f;
@@ -204,6 +211,14 @@ public:
 		m_z /= vec.m_z;
 		return *this;
 	}
+	Vector3& operator*( const float f )
+	{
+		m_x *= f;
+		m_y *= f;
+		m_z *= f;
+		return *this;
+	}
+
 	Vector3& operator*=( const float f )
 	{
 		m_x *= f;

@@ -63,7 +63,7 @@ public:
 		CEngineTraceClient::instance()->traceRayHook();
 
 		//drawing text stuff
-		//This has to be fixed : Not working OK
+		//xThis has to be fixed : Not working OK
 		if (extra::g_choices.statusText)
 		{
 			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", windowSize.m_x / 2, windowSize.m_y - 20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
@@ -149,7 +149,8 @@ public:
 				Vector2 entityPoshead2D{};
 				if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityPoshead3D, entityPoshead2D ))
 				{
-					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
+					//? Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black(not working well)
+					
 
 					if (extra::g_choices.snapLines)
 					{
@@ -158,6 +159,23 @@ public:
 					Vector2 entityBottomPos2D{};
 					if (LocalPlayer::getLocalPlayerPtr()->worldToScreen( entityBottomPos3D, entityBottomPos2D ))
 					{
+
+						//Drawing a velocity vector of entity
+						if (extra::g_choices.velocityEsp)
+						{
+							Vector3 velocityVec3D = entityBottomPos3D + (entity->mVecVelocity)*0.25f;
+							Vector2 velocityVec2D{};
+							if (W2S( velocityVec3D, velocityVec2D ))
+							{
+								DrawLine( pDevice, entityBottomPos2D, velocityVec2D, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ));
+								
+								//todoDrawFillRect(pDevice, velocityVec2D.m_x-2, velocityVec2D.m_y-2,)
+							}
+						}
+
+
+
+
 						//If world2screen valid for entity bottom position or vecOrigin draw 2d and 3d esp boxes
 						if (extra::g_choices.box2D)
 						{

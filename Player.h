@@ -19,6 +19,10 @@
 //from  "dxstuff.h" to be used in "Player.h"
 extern Vector2 g_windowSize;
 
+//!New global variable made for viewProjMatrix[16] as inside player class it was overriding other offsets
+//!This was causing weird bug og boomer sticker appearing
+extern float g_viewProjMatrix[16];
+
 class CRender
 {
 public:
@@ -111,8 +115,12 @@ public:
 	int survivor_name_index;//0x1c8c
 	int infected_name_index; //0x1c90
 
-
-	float viewProjMatrix[16]{};
+	//!if the viewProjMatrix[16] variable is placed directly after infected_name_index
+	//! it causes wierd bug of boomer sticker
+	//! some padding has to be introduced so that it does not overwrite some actual value in C_TerrorPlayer class while updating viewMatrix
+	//todo Or this whole updateMatrix() function alongwith variable can be shifted somewhere else
+	//!Easiest way is to make a global variable and remove it from inside the class
+	//xfloat viewProjMatrix[16]{};
 
 
 	static LocalPlayer* getLocalPlayerPtr() // to get a this pointer of object or maybe call base-address of object
@@ -134,9 +142,9 @@ public:
 
 	void aimAt( const Vector3& target )
 	{
-		static Vector3* viewAngles = this->getViewAnglesPtr();
-		Vector3 originPos = this->vecOrigin;
-		Vector3 viewOffset = this->m_vecViewOffset;
+		static Vector3* viewAngles = getViewAnglesPtr();
+		Vector3 originPos = vecOrigin;
+		Vector3 viewOffset = m_vecViewOffset;
 		Vector3 myFinalVec = originPos + viewOffset; // vector of LocalPlayer eyePosition
 		Vector3 deltaVector = target - myFinalVec; // difference Vector3 between LocalPlayer and other entity
 		float deltaVectorLength = deltaVector.Length(); // Length of difference vector
@@ -160,11 +168,14 @@ public:
 		if (!entity || !(entity->boneMatrixPtr1))
 			return { 0.0f,0.0f,0.0f };
 		auto boneArrayAccess = entity->boneMatrixPtr1->boneArray1[boneID].boneMatrixArray;
-		/*auto boneAccessShared = std::make_shared<float[]>(12);
-		RtlMoveMemory( &boneAccessShared, &boneArrayAccess, 48 );
-		auto boneAccessWeak = std::weak_ptr{ boneAccessShared };
-		auto boneCheckFail = boneAccessWeak.expired(); */
-		// this has to be fixed up IsBadReadPtr() is deperecated
+		
+		//x*auto boneAccessShared = std::make_shared<float[]>(12);
+		//xRtlMoveMemory( &boneAccessShared, &boneArrayAccess, 48 );
+		//xauto boneAccessWeak = std::weak_ptr{ boneAccessShared };
+		//xauto boneCheckFail = boneAccessWeak.expired(); */
+		//todo this has to be fixed up IsBadReadPtr() is deperecated
+
+
 		BOOL boneCheckFail = IsBadReadPtr( boneArrayAccess, 48 ); // Function returns Zero if calling process has read access to memory block
 		if (!boneCheckFail)
 		{
@@ -179,16 +190,16 @@ public:
 
 	void updateMatrix()
 	{
-		memcpy( &viewProjMatrix, (BYTE*) &(CRender::getCRenderBaseAddress()->wvpMatrix.matrix4x4), sizeof( viewProjMatrix ) );
+		memcpy( &g_viewProjMatrix, (BYTE*) &(CRender::getCRenderBaseAddress()->wvpMatrix.matrix4x4), sizeof( g_viewProjMatrix ) );
 	}
 
 	bool worldToScreen( Vector3 pos, Vector2& screen )
 	{
 		Vector4 clipCoords;
-		clipCoords.m_x = pos.m_x * viewProjMatrix[0] + pos.m_y * viewProjMatrix[1] + pos.m_z * viewProjMatrix[2] + viewProjMatrix[3];
-		clipCoords.m_y = pos.m_x * viewProjMatrix[4] + pos.m_y * viewProjMatrix[5] + pos.m_z * viewProjMatrix[6] + viewProjMatrix[7];
-		clipCoords.m_z = pos.m_x * viewProjMatrix[8] + pos.m_y * viewProjMatrix[9] + pos.m_z * viewProjMatrix[10] + viewProjMatrix[11];
-		clipCoords.m_w = pos.m_x * viewProjMatrix[12] + pos.m_y * viewProjMatrix[13] + pos.m_z * viewProjMatrix[14] + viewProjMatrix[15];
+		clipCoords.m_x = pos.m_x * g_viewProjMatrix[0] + pos.m_y * g_viewProjMatrix[1] + pos.m_z * g_viewProjMatrix[2] + g_viewProjMatrix[3];
+		clipCoords.m_y = pos.m_x * g_viewProjMatrix[4] + pos.m_y * g_viewProjMatrix[5] + pos.m_z * g_viewProjMatrix[6] + g_viewProjMatrix[7];
+		clipCoords.m_z = pos.m_x * g_viewProjMatrix[8] + pos.m_y * g_viewProjMatrix[9] + pos.m_z * g_viewProjMatrix[10] + g_viewProjMatrix[11];
+		clipCoords.m_w = pos.m_x * g_viewProjMatrix[12] + pos.m_y * g_viewProjMatrix[13] + pos.m_z * g_viewProjMatrix[14] + g_viewProjMatrix[15];
 		if (clipCoords.m_w < 0.1f)
 			return false;
 		Vector3 NDC;  // for projection on screen 4th column homogeneous point is not [0,0,0,1]
@@ -256,7 +267,7 @@ public:
 		if (entity->isDormant)
 			return false;
 	}
-
+	//todo this function has to be updated to include trace-ray check inside and to skip entity if not visible
 	LocalPlayer* GetClosestEnemy() // Get closest enemy to player
 	{
 		float closestDistance = 1000000;

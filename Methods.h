@@ -311,7 +311,7 @@ public:
 				//traceRayPtr( pECX, NULL, ray, MASK_NPCWORLDSTATIC | CONTENTS_SOLID | CONTENTS_MOVEABLE | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEBRIS | CONTENTS_HITBOX, &TraceFilter, &Trace );
 				if (entity == Trace.hit_entity)
 				{
-					//std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
+					std::cout << "Entity position: 0x" << std::hex << (ptrdiff_t) entity << '\n';
 					LocalPlayer::getLocalPlayerPtr()->aimAt( LocalPlayer::getLocalPlayerPtr()->GetBonePosition(entity,14 ));
 					
 				}
