@@ -17,6 +17,8 @@ namespace extra
 		bool rcsCrossHair{ true };
 	};
 	inline Choices g_choices{};
+
+	//inline std::string get_entity_name
 }
 
 

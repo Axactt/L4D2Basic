@@ -107,7 +107,9 @@ public:
 	class N00002FF8* boneMatrixPtr2; //0x0908
 	char pad_090C[2680]; //0x090C
 	Vector3 viewAngles; //0x1384
-	char pad_1390[12]; //0x1390
+	char pad_1390[2300]; //0x1390
+	int survivor_name_index;//0x1c8c
+	int infected_name_index; //0x1c90
 
 
 	float viewProjMatrix[16]{};
@@ -208,6 +210,13 @@ public:
 		return newPosition;
 	}
 	
+	char* get_entity_name( LocalPlayer* entity )
+	{
+		using entityNameFuncAlias = char* (__thiscall*)(void* pECX);
+		static entityNameFuncAlias entityNameFuncPtr = (entityNameFuncAlias) ( SigFunctor{}("client.dll", "\x56\x8B\xF1\x8B\x06\x8B\x90\x00\x00\x00\x00\xFF\xD2\x50\xE8\x00\x00\x00\x00\x83\xC4\x00\x84\xC0\x74\x00\x8B\xB6", "xxxxxxx????xxxx????xx?xxx?xx").GetAddress() );
+		return entityNameFuncPtr( entity );
+
+	}
 
 };
 

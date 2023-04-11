@@ -5,6 +5,8 @@
 #include"Player.h"
 #include"Methods.h"
 #include"Extra.h"
+#include<string>
+#include<sstream>
 
 class DirectXStuff
 {
@@ -15,7 +17,8 @@ public:
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
 	
-	
+	using entityNameFuncAlias = char* (__thiscall*)(void* pECX);
+	static inline entityNameFuncAlias entityNameFuncPtr = (entityNameFuncAlias) (SigFunctor{}("client.dll", "\x56\x8B\xF1\x8B\x06\x8B\x90\x00\x00\x00\x00\xFF\xD2\x50\xE8\x00\x00\x00\x00\x83\xC4\x00\x84\xC0\x74\x00\x8B\xB6", "xxxxxxx????xxxx????xx?xxx?xx").GetAddress());
 
 	ptrdiff_t lpOriginalFuncAddress{};
 	// interface pointer to IDirect3DDevice9
@@ -106,6 +109,28 @@ public:
 		{
 			LocalPlayer* entity = EntityListInstance::getEntityListInstancePtr()->GetOtherEntity( id );
 
+			if (id == 2 || id == 3 || id == 4)
+			{
+				Vector3 entityLeg3D = entity->vecOrigin;
+				Vector2 entityLeg2D{};
+				if (W2S( entityLeg3D, entityLeg2D ))
+				{
+					std::stringstream str1{};
+					std::stringstream str2{};
+					str1 << entity->health; //! setting stringstream buffer object using insertion(<<) operator
+					std::string t1 = "Hp: " + str1.str(); // using .str() function to retrieve the results of stringstream buffer and appending to existing string object
+					//!calling get_entity name vtable function for any entity to read name.
+					std::string charName2string{ LocalPlayer::getLocalPlayerPtr()->get_entity_name( entity ) }; // creating/converting the returned char* back to string for further opeartion with sstream class
+					str2 << charName2string;
+					std::string t2 = " Name: " + str2.str();
+					char* healthValue = (char*) t1.c_str();
+					char* nameType = (char*) t2.c_str();
+
+					DrawTextEsp( pDevice, nameType, entityLeg2D.m_x, entityLeg2D.m_y, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+					DrawTextEsp( pDevice, healthValue, entityLeg2D.m_x, entityLeg2D.m_y + 12, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+				}
+			}
+
 			if ((!entity) || (id == 0) || (id == 1) || (entity->iTeamNum != 3) || (entity->isDormant))
 				continue;
 
@@ -158,6 +183,8 @@ public:
 
 
 						}
+
+				
 
 					}
 
