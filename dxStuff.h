@@ -13,10 +13,10 @@ class DirectXStuff
 private:
 	DirectXStuff() = default;
 public:
-	
+
 	using aliasEndScene = HRESULT( __stdcall* )(IDirect3DDevice9*);
 	static inline aliasEndScene EndScenePtr{  };
-	
+
 	using entityNameFuncAlias = char* (__thiscall*)(void* pECX);
 	static inline entityNameFuncAlias entityNameFuncPtr = (entityNameFuncAlias) (SigFunctor{}("client.dll", "\x56\x8B\xF1\x8B\x06\x8B\x90\x00\x00\x00\x00\xFF\xD2\x50\xE8\x00\x00\x00\x00\x83\xC4\x00\x84\xC0\x74\x00\x8B\xB6", "xxxxxxx????xxxx????xx?xxx?xx").GetAddress());
 
@@ -29,7 +29,7 @@ public:
 		static DirectXStuff dxstuff;
 		return &dxstuff;
 	}
-	
+
 	// get the size of GameWindow
 	static  Vector2 getWindowSize()
 	{
@@ -52,24 +52,24 @@ public:
 	// A separate variable for window-size created
 	// apart from global variable to be used inside class
 	static inline Vector2 windowSize{ getWindowSize() };
-	
+
 
 	// Create our hook function having prototype as Endscene
 	// FIX THIS LATER== TOO MUCH STATIC
 	//hookEndScene member function has to be made static for being called by hook inside its own class
 	static HRESULT __stdcall hookEndScene( IDirect3DDevice9* pDevice )
 	{
-		//Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
+		//?Trace-Ray called here to have same Thread Local storage as game thread calling trace-ray function
 		CEngineTraceClient::instance()->traceRayHook();
 
 		//drawing text stuff
 		//This has to be fixed : Not working OK
-		if(extra::g_choices.statusText)
+		if (extra::g_choices.statusText)
 		{
-			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", windowSize.m_x / 2,  windowSize.m_y-20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", windowSize.m_x / 2, windowSize.m_y - 20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		}
 
-		if(extra::g_choices.rcsCrossHair)
+		if (extra::g_choices.rcsCrossHair)
 		{
 			//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
 			// all drawing stuff goes here
@@ -149,7 +149,7 @@ public:
 				{
 					// Line3D( pDevice, entityPoshead2D.m_x, entityPoshead2D.m_y, 1.0f, dest.m_x, dest.m_y, 1.0f, D3DCOLOR_ARGB( 255, 255, 0, 0 ) ); // if use z as 0.0f model become black
 
-					if(extra::g_choices.snapLines)
+					if (extra::g_choices.snapLines)
 					{
 						DrawLine( pDevice, entityPoshead2D, dest, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 					}
@@ -172,9 +172,9 @@ public:
 						}
 						if (extra::g_choices.headLineEsp)
 						{
-							Vector3 entityAngles{entity->viewAngles};
+							Vector3 entityAngles{ entity->viewAngles };
 							Vector3 endPoint3D{ entity->TransFormVector( entityPoshead3D,entityAngles,60 ) };// 60 is distance to which velocity vector has to be drwan
-							Vector2 endPoint2D{};	
+							Vector2 endPoint2D{};
 							W2S( entityPoshead3D, entityPoshead2D );
 							if (W2S( endPoint3D, endPoint2D ))
 							{
@@ -184,7 +184,7 @@ public:
 
 						}
 
-				
+
 
 					}
 
@@ -298,7 +298,7 @@ public:
 //Cannot inlude "dxstuff.h" in "player.h" as it will lead to cyclic redundancy includes
 //So a global variable defined here to transfer window-size value
 //In "Player.h" extern declaration given 
-Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() }; 
+Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
 
 //inline Vector2 g_windowSize{ DirectXStuff::dxstfInstance()->getWindowSize() };
 

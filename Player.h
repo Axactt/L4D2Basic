@@ -17,7 +17,7 @@
 
 // extern declaration for global variable g_windowSize 
 //from  "dxstuff.h" to be used in "Player.h"
-extern Vector2 g_windowSize; 
+extern Vector2 g_windowSize;
 
 class CRender
 {
@@ -154,7 +154,7 @@ public:
 	}
 
 
-	Vector3 GetBonePosition(LocalPlayer* entity, int boneID )
+	Vector3 GetBonePosition( LocalPlayer* entity, int boneID )
 	{
 		Vector3 bonePos{};
 		if (!entity || !(entity->boneMatrixPtr1))
@@ -204,16 +204,16 @@ public:
 	Vector3 TransFormVector( Vector3 source, Vector3 angle, float dis )
 	{
 		Vector3 newPosition{};
-		newPosition.m_x = source.m_x + (cosf(angleRad(angle.m_y)) * dis);
-		newPosition.m_y = source.m_y + (sinf( angleRad( angle.m_y) )  * dis);
-		newPosition.m_z = source.m_z + (tanf( angleRad(angle.m_x)) * dis);
+		newPosition.m_x = source.m_x + (cosf( angleRad( angle.m_y ) ) * dis);
+		newPosition.m_y = source.m_y + (sinf( angleRad( angle.m_y ) ) * dis);
+		newPosition.m_z = source.m_z + (tanf( angleRad( angle.m_x ) ) * dis);
 		return newPosition;
 	}
-	
+
 	char* get_entity_name( LocalPlayer* entity )
 	{
 		using entityNameFuncAlias = char* (__thiscall*)(void* pECX);
-		static entityNameFuncAlias entityNameFuncPtr = (entityNameFuncAlias) ( SigFunctor{}("client.dll", "\x56\x8B\xF1\x8B\x06\x8B\x90\x00\x00\x00\x00\xFF\xD2\x50\xE8\x00\x00\x00\x00\x83\xC4\x00\x84\xC0\x74\x00\x8B\xB6", "xxxxxxx????xxxx????xx?xxx?xx").GetAddress() );
+		static entityNameFuncAlias entityNameFuncPtr = (entityNameFuncAlias) (SigFunctor{}("client.dll", "\x56\x8B\xF1\x8B\x06\x8B\x90\x00\x00\x00\x00\xFF\xD2\x50\xE8\x00\x00\x00\x00\x83\xC4\x00\x84\xC0\x74\x00\x8B\xB6", "xxxxxxx????xxxx????xx?xxx?xx").GetAddress());
 		return entityNameFuncPtr( entity );
 
 	}
@@ -274,7 +274,7 @@ public:
 			Vector3 LocalPlayerPos = (localPlayer->vecOrigin) + (localPlayer->m_vecViewOffset);
 
 
-			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition(entity, 14 ) }; // Gets the position of other player head-position
+			Vector3 otherPlayerPos{ GetOtherEntity( i )->GetBonePosition( entity, 14 ) }; // Gets the position of other player head-position
 
 			float distanceDiff = LocalPlayerPos.DistanceTo( otherPlayerPos );
 			if (distanceDiff < closestDistance)
@@ -291,17 +291,17 @@ public:
 
 		return { GetOtherEntity( closestDistanceIndex ) };
 	}
-/*
-	Vector3 targetEntityVec()
-	{
-		// Use 14 for head bone-id
-		// Return a temporary Vector3 object 
-		LocalPlayer* targetEntity = GetClosestEnemy();
+	/*
+		Vector3 targetEntityVec()
+		{
+			// Use 14 for head bone-id
+			// Return a temporary Vector3 object
+			LocalPlayer* targetEntity = GetClosestEnemy();
 
-		if (!IsBadReadPtr( targetEntity->boneMatrixPtr1->boneArray1->boneMatrixArray, 48 ))
-			return { targetEntity->GetBonePosition( 14 ) };
-		else
-			return { 0.0f,0.0f,0.0f };
-	}  */
+			if (!IsBadReadPtr( targetEntity->boneMatrixPtr1->boneArray1->boneMatrixArray, 48 ))
+				return { targetEntity->GetBonePosition( 14 ) };
+			else
+				return { 0.0f,0.0f,0.0f };
+		}  */
 
 };
