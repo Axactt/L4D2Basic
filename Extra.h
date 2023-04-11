@@ -6,15 +6,18 @@ namespace extra
 
 	struct Choices
 	{
-		bool showTeamMates{ true };
-		bool snapLines{ false };
+		bool showTeamMates{ false };
+		bool snapLines{ true };
 		bool box2D{ false };
 		bool status2D{ false };
 		bool statusText{ true };
-		bool box3D{ true };
-		bool velEsp{ true };
+		bool statusTextTeam{ false };
+		bool statusTextEntity{ true };
+		bool box3D{ false };
+		bool velEsp{false };
 		bool headLineEsp{ false };
 		bool rcsCrossHair{ true };
+
 	};
 	inline Choices g_choices{};
 

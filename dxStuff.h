@@ -108,26 +108,28 @@ public:
 		for (int id{ 0 }; id < 900; ++id)
 		{
 			LocalPlayer* entity = EntityListInstance::getEntityListInstancePtr()->GetOtherEntity( id );
-
-			if (id == 2 || id == 3 || id == 4)
+			if (extra::g_choices.statusTextTeam)
 			{
-				Vector3 entityLeg3D = entity->vecOrigin;
-				Vector2 entityLeg2D{};
-				if (W2S( entityLeg3D, entityLeg2D ))
+				if (id == 2 || id == 3 || id == 4)
 				{
-					std::stringstream str1{};
-					std::stringstream str2{};
-					str1 << entity->health; //! setting stringstream buffer object using insertion(<<) operator
-					std::string t1 = "Hp: " + str1.str(); // using .str() function to retrieve the results of stringstream buffer and appending to existing string object
-					//!calling get_entity name vtable function for any entity to read name.
-					std::string charName2string{ LocalPlayer::getLocalPlayerPtr()->get_entity_name( entity ) }; // creating/converting the returned char* back to string for further opeartion with sstream class
-					str2 << charName2string;
-					std::string t2 = " Name: " + str2.str();
-					char* healthValue = (char*) t1.c_str();
-					char* nameType = (char*) t2.c_str();
+					Vector3 entityLeg3D = entity->vecOrigin;
+					Vector2 entityLeg2D{};
+					if (W2S( entityLeg3D, entityLeg2D ))
+					{
+						std::stringstream str1{};
+						std::stringstream str2{};
+						str1 << entity->health; //! setting stringstream buffer object using insertion(<<) operator
+						std::string t1 = "Hp: " + str1.str(); // using .str() function to retrieve the results of stringstream buffer and appending to existing string object
+						//!calling get_entity name vtable function for any entity to read name.
+						std::string charName2string{ LocalPlayer::getLocalPlayerPtr()->get_entity_name( entity ) }; // creating/converting the returned char* back to string for further opeartion with sstream class
+						str2 << charName2string;
+						std::string t2 = " Name: " + str2.str();
+						char* healthValue = (char*) t1.c_str();
+						char* nameType = (char*) t2.c_str();
 
-					DrawTextEsp( pDevice, nameType, entityLeg2D.m_x, entityLeg2D.m_y, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
-					DrawTextEsp( pDevice, healthValue, entityLeg2D.m_x, entityLeg2D.m_y + 12, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+						DrawTextEsp( pDevice, nameType, entityLeg2D.m_x, entityLeg2D.m_y, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+						DrawTextEsp( pDevice, healthValue, entityLeg2D.m_x, entityLeg2D.m_y + 12, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+					}
 				}
 			}
 
@@ -173,17 +175,43 @@ public:
 						if (extra::g_choices.headLineEsp)
 						{
 							Vector3 entityAngles{ entity->viewAngles };
-							Vector3 endPoint3D{ entity->TransFormVector( entityPoshead3D,entityAngles,60 ) };// 60 is distance to which velocity vector has to be drwan
+							Vector3 endPoint3D{ entity->TransFormVector        ( entityPoshead3D,entityAngles,60 ) };// 60 is distance to which velocity vector has to be drwan
 							Vector2 endPoint2D{};
-							W2S( entityPoshead3D, entityPoshead2D );
+							 W2S( entityPoshead3D, entityPoshead2D );
 							if (W2S( endPoint3D, endPoint2D ))
 							{
 								DrawLine( pDevice, entityPoshead2D, endPoint2D, 2, false, D3DCOLOR_ARGB( 255, 255, 0, 0 ) );
 							}
+						}
+						if (extra::g_choices.statusTextEntity)
+						{
 
+							std::stringstream str1{};
+							std::stringstream str2{};
+
+							//! setting stringstream buffer object using insertion(<<) operator
+							str1 << entity->infected_name_index; 
+
+							//!using .str() function to retrieve the results of stringstream buffer and appending to existing string object
+							std::string t1 = "Index: " + str1.str(); 
+
+							//!calling get_entity name vtable function for any entity to read name.
+							//!  creating/converting the returned char* back to string for further opeartion with sstream class
+							std::string charName2string{ LocalPlayer::getLocalPlayerPtr()->get_entity_name( entity ) }; 
+
+							//! setting stringstream buffer object using insertion(<<) operator
+							str2 << charName2string;
+							std::string t2 = " Name: " + str2.str();
+
+						//!Converting the string object back to C-style char string using c_str()
+						//! before using in DrawTextEsp function to draw 
+							char* someValue = (char*) t1.c_str();
+							char* nameType = (char*) t2.c_str();
+
+							DrawTextEsp( pDevice, nameType, entityBottomPos2D.m_x, entityBottomPos2D.m_y, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+							DrawTextEsp( pDevice, someValue, entityBottomPos2D.m_x, entityBottomPos2D.m_y + 12, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 
 						}
-
 
 
 					}
