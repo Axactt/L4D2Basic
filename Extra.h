@@ -6,21 +6,41 @@ namespace extra
 
 	struct Choices
 	{
-		bool showTeamMates{ false };
+		bool showMenu{ false };
+		//xbool showTeamMates{ false };
 		bool snapLines{ false };
 		bool box2D{ false };
-		bool status2D{ false };
-		bool statusText{ true };
+		//xbool status2D{ false };
+		bool statusText{ false };
 		bool statusTextTeam{ false };
-		bool box3D{ true };
+		bool box3D{ false };
 		bool headLineEsp{ false };
-		bool rcsCrossHair{ true };
-		bool statusTextEntity{ true };
-		bool velocityEsp{ true };
+		bool rcsCrossHair{ false };
+		bool statusTextEntity{ false };
+		bool velocityEsp{ false };
 	};
-	inline Choices g_choices{};
+	//!inline variable with multiple file includes to be included anywhere
+	inline Choices g_choices{}; 
 
-	//inline std::string get_entity_name
+	//One button for each of above menu items to enable disable
+	//! we are initializing each memu-button identifier with  particular key_state so it can be used elsewher in code
+	struct Buttons
+	{
+		DWORD showMenuBtn{ VK_INSERT };
+		//xbool showTeamMates{ false };
+		DWORD snapLinesBtn{ VK_F1 };
+		DWORD box2DBtn{ VK_F2 };
+		//xbool status2D{ false };
+		DWORD statusTextBtn{VK_F3 };
+		DWORD statusTextTeamBtn{ VK_F4 };
+		DWORD box3DBtn{ VK_F5};
+		DWORD headLineEspBtn{VK_F6 };
+		DWORD rcsCrossHairBtn{ VK_F7 };
+		DWORD statusTextEntityBtn{ VK_F8 };
+		DWORD velocityEspBtn{ VK_F9};
+	};
+	//Another inline variable to be copied 
+	inline Buttons g_Buttons{};
 }
 
 

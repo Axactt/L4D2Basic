@@ -69,6 +69,35 @@ public:
 			DrawTextEsp( pDevice, "First copied Esp by ReVirus. More original stuff to follow!", windowSize.m_x / 2, windowSize.m_y - 20, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
 		}
 
+		//drawing menu with controls
+
+		int menuOffsetX = windowSize.m_x / 2;
+		int menuOffsetY = 50;
+		D3DCOLOR enabled = D3DCOLOR_ARGB( 255, 0, 255, 0 );
+		D3DCOLOR disabled = D3DCOLOR_ARGB( 255, 255, 0, 0 );
+
+		if (!extra::g_choices.showMenu) //if menu key is disabled only this will show
+		{
+			DrawTextEsp( pDevice,"Show Menu (INS)", menuOffsetX, menuOffsetY, D3DCOLOR_ARGB( 255, 255, 255, 255 ) );
+		}
+		else
+		{
+			//Menu items to show when menu key is enabled
+			DrawTextEsp( pDevice, "Show Menu (INS)", menuOffsetX, menuOffsetY + 0 * 12, extra::g_choices.showMenu ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show snapLines (F1)", menuOffsetX, menuOffsetY +1 * 12, extra::g_choices.snapLines ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show box2D (F2)", menuOffsetX, menuOffsetY + 2 * 12, extra::g_choices.box2D ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show statusText (F3)", menuOffsetX, menuOffsetY + 3 * 12, extra::g_choices.statusText ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show statusTextTeam (F4)", menuOffsetX, menuOffsetY + 4 * 12, extra::g_choices.statusTextTeam ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show box3D (F5)", menuOffsetX, menuOffsetY + 5 * 12, extra::g_choices.box3D ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show headlineEsp (F6)", menuOffsetX, menuOffsetY + 6 * 12, extra::g_choices.headLineEsp ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show rcsCrossHair (F7)", menuOffsetX, menuOffsetY + 7 * 12, extra::g_choices.rcsCrossHair ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show statusTextEntity(F8)", menuOffsetX, menuOffsetY + 8 * 12, extra::g_choices.statusTextEntity ? enabled : disabled );
+			DrawTextEsp( pDevice, "Show velocityEsp(F9)", menuOffsetX, menuOffsetY + 9 * 12, extra::g_choices.velocityEsp ? enabled : disabled );
+			DrawTextEsp( pDevice, "Hide Menu (INS)", menuOffsetX, menuOffsetY + 10 * 12, D3DCOLOR_ARGB(255,255,255,255 ));
+		}
+
+
+
 		if (extra::g_choices.rcsCrossHair)
 		{
 			//DrawLine( pDevice, src, dst,  width,  antialias, D3DCOLOR color );
@@ -242,6 +271,7 @@ public:
 	}
 
 	void* FindEndScene()
+	
 	{
 		//get HWND of Game window
 		HWND gameWindow = FindWindowA( NULL, "Left 4 Dead 2 - Direct3D 9" );

@@ -11,10 +11,10 @@
 #include"utilities/SigFunctor.h"
 #include"utilities/MemEditAdvnc.h"
 #include"utilities/Vector.h"
-//#include"Player.h"
-//#include"Methods.h"
-//#include"dxStuff.h"
-//#include"drawLogic.h"
+//x#include"Player.h"
+//x#include"Methods.h"
+//x#include"dxStuff.h"
+//x#include"drawLogic.h"
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 #include<directxmath.h>

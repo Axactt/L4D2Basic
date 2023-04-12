@@ -2,7 +2,7 @@
 #pragma once
 #include<vector>
 #include"Includes.h"
-
+#include"Extra.h"
 
 #pragma region Address
 #define clientBase  (ptrdiff_t)GetModuleHandleA("client.dll")
@@ -118,7 +118,7 @@ public:
 	//!if the viewProjMatrix[16] variable is placed directly after infected_name_index
 	//! it causes wierd bug of boomer sticker
 	//! some padding has to be introduced so that it does not overwrite some actual value in C_TerrorPlayer class while updating viewMatrix
-	//todo Or this whole updateMatrix() function alongwith variable can be shifted somewhere else
+	//todo Or this whole updateMatrixButtons() function alongwith variable can be shifted somewhere else
 	//!Easiest way is to make a global variable and remove it from inside the class
 	//xfloat viewProjMatrix[16]{};
 
@@ -188,9 +188,46 @@ public:
 		return { 0.0f,0.0f,0.0f };
 	}
 
-	void updateMatrix()
+	void checkButtons()
+	{
+		//!Activation-Deactivation of menu items through key-binds to various button name
+
+		if (GetAsyncKeyState( extra::g_Buttons.showMenuBtn ) & 1)
+			extra::g_choices.showMenu = !extra::g_choices.showMenu; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.box2DBtn ) & 1)
+			extra::g_choices.box2D = !extra::g_choices.box2D; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.box3DBtn ) & 1)
+			extra::g_choices.box3D = !extra::g_choices.box3D; //!changes the ealier held setting on key press
+		
+		if (GetAsyncKeyState( extra::g_Buttons.headLineEspBtn ) & 1)
+			extra::g_choices.headLineEsp = !extra::g_choices.headLineEsp; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.rcsCrossHairBtn ) & 1)
+			extra::g_choices.rcsCrossHair = !extra::g_choices.rcsCrossHair; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.snapLinesBtn ) & 1)
+			extra::g_choices.snapLines = !extra::g_choices.snapLines; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.statusTextBtn ) & 1)
+			extra::g_choices.statusText = !extra::g_choices.statusText; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.statusTextEntityBtn ) & 1)
+			extra::g_choices.statusTextEntity = !extra::g_choices.statusTextEntity; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.statusTextTeamBtn) & 1)
+			extra::g_choices.statusTextTeam = !extra::g_choices.statusTextTeam; //!changes the ealier held setting on key press
+
+		if (GetAsyncKeyState( extra::g_Buttons.velocityEspBtn ) & 1)
+			extra::g_choices.velocityEsp = !extra::g_choices.velocityEsp; //!changes the ealier held setting on key press
+
+	}
+
+	void updateMatrixButtons()
 	{
 		memcpy( &g_viewProjMatrix, (BYTE*) &(CRender::getCRenderBaseAddress()->wvpMatrix.matrix4x4), sizeof( g_viewProjMatrix ) );
+		checkButtons();
 	}
 
 	bool worldToScreen( Vector3 pos, Vector2& screen )

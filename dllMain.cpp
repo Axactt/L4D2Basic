@@ -31,7 +31,7 @@ DWORD WINAPI myThreadProc( HMODULE hInstDLL )
 	while (!GetAsyncKeyState( VK_END ) & 1)
 	{
 
-		localPlayerBaseAddress->updateMatrix(); // This has to causing the bug
+		localPlayerBaseAddress->updateMatrixButtons(); // This has to causing the bug
 		/*
 		if (GetAsyncKeyState( VK_F1 ) & 1)
 		{
