@@ -1,7 +1,7 @@
 #ifndef HOOKTEMPLATE_H
 #define HOOKTEMPLATE_H
 #include<Windows.h>
-
+#include<functional>
 // patch bytes function
 class HooknPatch
 {
@@ -119,16 +119,36 @@ public:
 		RtlMoveMemory( lpOriginalFuncAddrs, m_gateWay, LENGTH );
 		VirtualProtect( lpOriginalFuncAddrs, LENGTH, oldProc, &oldProc );
 	}
-
+	/*
 	template<int LENGTH>
 	void unhook( char* lpOriginalFuncAddress )
 	{
 
 		patchByte<LENGTH>( lpOriginalFuncAddress );
+
 		if (m_gateWay)
 			VirtualFree( m_gateWay, 0, MEM_RELEASE );
 		m_gateWay = nullptr;
-	}
+	}*/
+
+	//!  Assign a Lambda Type for unhook Function to be used with std::thread Library
+	//! Note tHat auto cannot be used for Lambda type inside Class scope
+	//? So we are using std::function<return_type(arg1,arg2..argn)> for use a type of Lambda. Even c++23 std does not allow
+
+	std::function<void(char*,int)> unHook = [&](char* lpOriginalFuncAddrs,int LENGTH)
+	{
+		//todo To understand why patchByte with fixed template parameter can't be used inside lambda
+	    //xpatchByte<LENGTH>(lpOriginalFuncAddrs);
+		DWORD oldProc{};
+		VirtualProtect(lpOriginalFuncAddrs, LENGTH, PAGE_EXECUTE_READWRITE, &oldProc);
+		RtlMoveMemory(lpOriginalFuncAddrs, m_gateWay, LENGTH);
+		VirtualProtect(lpOriginalFuncAddrs, LENGTH, oldProc, &oldProc);
+		if(m_gateWay)
+			VirtualFree(m_gateWay, 0, MEM_RELEASE);
+		m_gateWay = nullptr;
+
+	};
+
 };
 
 inline HooknPatch g_HnP{}; // Inline global object instance to use with all files
